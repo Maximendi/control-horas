@@ -472,6 +472,22 @@
 
     /* Modal hora chips */
     #modal-horas-grid .hora-chip { font-size: 11px; padding: 5px 10px; }
+
+    /* Tipo de tarea badge */
+    .tipo-badge {
+      display: inline-flex; align-items: center;
+      font-size: 10px; font-weight: 600;
+      padding: 2px 8px; border-radius: var(--radius-pill);
+      margin-left: 6px; vertical-align: middle;
+    }
+    .tipo-badge--rutinaria {
+      background: #f0f4ff; color: #3b5bdb;
+      border: 1px solid #c5d0fa;
+    }
+    .tipo-badge--extraordinaria {
+      background: #fff8e8; color: #b07d00;
+      border: 1px solid #f5d87a;
+    }
   </style>
 </head>
 <body>
@@ -546,6 +562,13 @@
         <label>hs personalizado</label>
       </div>
     </div>
+    <div style="margin-bottom:12px">
+      <label class="form-label">Tipo de tarea <span style="color:var(--accent)">*</span></label>
+      <div class="horas-grid" id="tipo-grid">
+        <div class="hora-chip tipo-chip" data-tipo="rutinaria">⚙️ Rutinaria</div>
+        <div class="hora-chip tipo-chip" data-tipo="extraordinaria">⭐ Extraordinaria</div>
+      </div>
+    </div>
     <div style="margin-bottom:16px">
       <label class="form-label">Descripción del trabajo</label>
       <textarea class="form-textarea" id="entry-detalle" placeholder="Ej: Liquidación IVA junio, revisión DDJJ IIGG, consulta laboral…"></textarea>
@@ -589,6 +612,17 @@
   <div class="card" id="clients-chart-card" style="display:none">
     <div class="card-title">Horas por Cliente — <span id="clients-chart-period-label">Total histórico</span></div>
     <div id="clients-bar-chart"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📥 Exportar Listado de Clientes</div>
+    <p style="font-size:12px;color:var(--text-2);margin-bottom:14px;line-height:1.5">
+      Exportá el listado completo de clientes ordenado alfabéticamente, con las horas del período seleccionado arriba.
+    </p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn-green" onclick="exportarClientesExcel()">📊 Descargar Excel (.xls)</button>
+      <button class="btn-primary" onclick="exportarClientesPDF()">📄 Descargar PDF</button>
+    </div>
   </div>
 </div>
 
@@ -822,6 +856,13 @@
         <label>hs personalizado</label>
       </div>
     </div>
+    <div style="margin-bottom:12px">
+      <label class="form-label">Tipo de tarea <span style="color:var(--accent)">*</span></label>
+      <div class="horas-grid" id="modal-tipo-grid">
+        <div class="hora-chip tipo-chip" data-tipo="rutinaria">⚙️ Rutinaria</div>
+        <div class="hora-chip tipo-chip" data-tipo="extraordinaria">⭐ Extraordinaria</div>
+      </div>
+    </div>
     <div>
       <label class="form-label">Descripción</label>
       <textarea class="form-textarea" id="modal-detalle"></textarea>
@@ -889,7 +930,9 @@ function showToast(msg) {
 
 // ── State ──────────────────────────────────────────────────────
 let selectedHoras = null;
+let selectedTipoTarea = null;
 let modalSelectedHoras = null;
+let modalSelectedTipoTarea = null;
 let editingId = null;
 let reportPeriod  = 'today';
 let reportCliente = '';   // '' = todos los clientes
@@ -941,6 +984,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const val = parseFloat(e.target.value);
     document.querySelectorAll('#horas-grid .hora-chip').forEach(c => c.classList.remove('selected'));
     selectedHoras = isNaN(val) || val <= 0 ? null : val;
+  });
+
+  // Tipo de tarea chips (form)
+  document.getElementById('tipo-grid').addEventListener('click', (e) => {
+    const chip = e.target.closest('.tipo-chip');
+    if (!chip) return;
+    document.querySelectorAll('#tipo-grid .tipo-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    selectedTipoTarea = chip.dataset.tipo;
   });
 
   // Add entry
@@ -999,6 +1051,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const val = parseFloat(e.target.value);
     document.querySelectorAll('#modal-horas-grid .hora-chip').forEach(c => c.classList.remove('selected'));
     modalSelectedHoras = isNaN(val) || val <= 0 ? null : val;
+  });
+
+  // Tipo de tarea chips (modal)
+  document.getElementById('modal-tipo-grid').addEventListener('click', (e) => {
+    const chip = e.target.closest('.tipo-chip');
+    if (!chip) return;
+    document.querySelectorAll('#modal-tipo-grid .tipo-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    modalSelectedTipoTarea = chip.dataset.tipo;
   });
 
   // Modal buttons
@@ -1118,10 +1179,11 @@ function agregarEntrada() {
   const detalle = document.getElementById('entry-detalle').value.trim();
   if (!clienteId) { showToast('⚠️ Seleccioná un cliente'); return; }
   if (!selectedHoras) { showToast('⚠️ Indicá las horas'); return; }
+  if (!selectedTipoTarea) { showToast('⚠️ Seleccioná el tipo de tarea'); return; }
   if (!detalle) { showToast('⚠️ Describí el trabajo'); return; }
 
   const registros = STORE.registros();
-  registros.push({ id: uid(), clienteId, fecha, horas: selectedHoras, detalle, ts: Date.now() });
+  registros.push({ id: uid(), clienteId, fecha, horas: selectedHoras, tipoTarea: selectedTipoTarea, detalle, ts: Date.now() });
   STORE.saveRegistros(registros);
   limpiarFormulario();
   showToast('✅ Horas registradas');
@@ -1132,8 +1194,10 @@ function limpiarFormulario() {
   document.getElementById('sel-cliente').value = '';
   document.querySelectorAll('#horas-grid .hora-chip').forEach(c => c.classList.remove('selected'));
   document.getElementById('custom-horas').value = '';
+  document.querySelectorAll('#tipo-grid .tipo-chip').forEach(c => c.classList.remove('selected'));
   document.getElementById('entry-detalle').value = '';
   selectedHoras = null;
+  selectedTipoTarea = null;
 }
 
 function renderTabRegistrar() {
@@ -1190,7 +1254,7 @@ function renderTabRegistrar() {
         return `<div class="entry-item">
           <div class="entry-dot" style="background:${c.color}"></div>
           <div class="entry-info">
-            <div class="entry-cliente">${c.nombre}</div>
+            <div class="entry-cliente">${c.nombre} <span class="tipo-badge tipo-badge--${r.tipoTarea||'rutinaria'}">${r.tipoTarea === 'extraordinaria' ? '⭐ Extraordinaria' : '⚙️ Rutinaria'}</span></div>
             <div class="entry-detalle">${r.detalle}</div>
           </div>
           <div class="entry-right">
@@ -1222,11 +1286,17 @@ function abrirEditModal(id) {
 
   editingId = id;
   modalSelectedHoras = r.horas;
+  modalSelectedTipoTarea = r.tipoTarea || 'rutinaria';
 
   populateModalClientes(r.clienteId);
   document.getElementById('modal-fecha').value = r.fecha;
   document.getElementById('modal-detalle').value = r.detalle;
   document.getElementById('modal-custom-horas').value = '';
+
+  // Tipo chips
+  document.querySelectorAll('#modal-tipo-grid .tipo-chip').forEach(c => {
+    c.classList.toggle('selected', c.dataset.tipo === modalSelectedTipoTarea);
+  });
 
   // Select matching chip or set custom
   document.querySelectorAll('#modal-horas-grid .hora-chip').forEach(c => {
@@ -1244,6 +1314,7 @@ function cerrarModal() {
   document.getElementById('edit-modal').classList.remove('open');
   editingId = null;
   modalSelectedHoras = null;
+  modalSelectedTipoTarea = null;
 }
 
 function guardarEdicion() {
@@ -1253,11 +1324,12 @@ function guardarEdicion() {
 
   if (!clienteId) { showToast('⚠️ Seleccioná un cliente'); return; }
   if (!modalSelectedHoras) { showToast('⚠️ Indicá las horas'); return; }
+  if (!modalSelectedTipoTarea) { showToast('⚠️ Seleccioná el tipo de tarea'); return; }
   if (!detalle) { showToast('⚠️ Describí el trabajo'); return; }
 
   const registros = STORE.registros().map(r => {
     if (r.id !== editingId) return r;
-    return { ...r, clienteId, fecha, horas: modalSelectedHoras, detalle };
+    return { ...r, clienteId, fecha, horas: modalSelectedHoras, tipoTarea: modalSelectedTipoTarea, detalle };
   });
   STORE.saveRegistros(registros);
   cerrarModal();
@@ -1406,6 +1478,211 @@ function cancelarRenombrar(id) {
   renderTabClientes();
 }
 
+// ── Exportar Clientes ──────────────────────────────────────────
+function getClientesConHoras() {
+  const clientes = clientesOrdenados();
+  const hoy = today();
+  let registros = STORE.registros();
+  if (clientesPeriod === 'today')
+    registros = registros.filter(r => r.fecha === hoy);
+  else if (clientesPeriod === 'week')
+    registros = registros.filter(r => r.fecha >= startOfWeek(hoy) && r.fecha <= hoy);
+  else if (clientesPeriod === 'month')
+    registros = registros.filter(r => r.fecha >= startOfMonth(hoy) && r.fecha <= hoy);
+  const horasPorCliente = {};
+  registros.forEach(r => { horasPorCliente[r.clienteId] = (horasPorCliente[r.clienteId]||0) + r.horas; });
+  return { clientes, horasPorCliente };
+}
+
+function exportarClientesExcel() {
+  const { clientes, horasPorCliente } = getClientesConHoras();
+  if (clientes.length === 0) { showToast('⚠️ Sin clientes para exportar'); return; }
+  const totalHs = clientes.reduce((s,c) => s + (horasPorCliente[c.id]||0), 0);
+  const periodLabel = PERIOD_LABELS[clientesPeriod] || 'Total histórico';
+
+  const filas = clientes.map(c => {
+    const hs = horasPorCliente[c.id] || 0;
+    return `<tr>
+      <td>${escXml(c.nombre)}</td>
+      <td style="mso-number-format:'0.00'">${hs}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:x="urn:schemas-microsoft-com:office:excel"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; }
+  table { border-collapse: collapse; }
+  th { background: #1a1a1a; color: #fff; padding: 6px 10px; font-weight: bold; border: 1px solid #ccc; }
+  td { padding: 5px 10px; border: 1px solid #ddd; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8f5f0; }
+  .title { font-size: 14pt; font-weight: bold; color: #cc5a3a; margin-bottom: 4px; }
+  .sub { font-size: 10pt; color: #666; margin-bottom: 12px; }
+  .total-row td { background: #fdf0ec; font-weight: bold; border-top: 2px solid #cc5a3a; }
+</style>
+</head>
+<body>
+<div class="title">Listado de Clientes · San Miguel Contadores</div>
+<div class="sub">Período: ${escXml(periodLabel)} &nbsp;|&nbsp; Total: ${horasText(totalHs)} hs &nbsp;|&nbsp; ${clientes.length} clientes</div>
+<table>
+  <thead>
+    <tr>
+      <th>Cliente</th>
+      <th>Horas (${escXml(periodLabel)})</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${filas}
+    <tr class="total-row">
+      <td><b>TOTAL</b></td>
+      <td><b>${totalHs}</b></td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>`;
+
+  const blob = new Blob(['﻿' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const fecha = today().replace(/-/g,'');
+  triggerDownload(URL.createObjectURL(blob), `clientes_${fecha}.xls`);
+  showToast(`✅ Excel descargado: ${clientes.length} clientes`);
+}
+
+function exportarClientesPDF() {
+  const { clientes, horasPorCliente } = getClientesConHoras();
+  if (clientes.length === 0) { showToast('⚠️ Sin clientes para exportar'); return; }
+  const totalHs = clientes.reduce((s,c) => s + (horasPorCliente[c.id]||0), 0);
+  const periodLabel = PERIOD_LABELS[clientesPeriod] || 'Total histórico';
+
+  const PW=595, PH=842, ML=40, MR=40, MT=48, MB=48;
+  const CW = PW - ML - MR;
+  const allPageOps = [];
+  let ops = [];
+  let cy = MT;
+
+  function py(topY) { return PH - topY; }
+
+  function pdfStr(s) {
+    const w1252 = {8364:128,8218:130,402:131,8222:132,8230:133,8224:134,8225:135,
+      710:136,8240:137,352:138,8249:139,338:140,381:142,8216:145,8217:146,
+      8220:147,8221:148,8226:149,8211:150,8212:151,732:152,8482:153,
+      353:154,8250:155,339:156,382:158,376:159};
+    let r = '';
+    for (let i=0; i<s.length; i++) {
+      const cc = s.charCodeAt(i);
+      if      (cc===40)  r += '\\(';
+      else if (cc===41)  r += '\\)';
+      else if (cc===92)  r += '\\\\';
+      else if (cc>=32 && cc<=126) r += s[i];
+      else if (cc>=160 && cc<=255) r += '\\' + cc.toString(8).padStart(3,'0');
+      else if (w1252[cc]) r += '\\' + w1252[cc].toString(8).padStart(3,'0');
+      else r += '?';
+    }
+    return '(' + r + ')';
+  }
+
+  function txt(x, ty, s, font, size, rgb) {
+    const [r,g,b] = rgb||[0,0,0];
+    ops.push(`${r} ${g} ${b} rg BT /${font} ${size} Tf ${x} ${py(ty+size*0.76)} Td ${pdfStr(String(s))} Tj ET`);
+  }
+  function hline(x1, ty, x2, lw, rgb) {
+    const [r,g,b] = rgb||[0.88,0.86,0.83];
+    ops.push(`${lw||0.4} w ${r} ${g} ${b} RG ${x1} ${py(ty)} m ${x2} ${py(ty)} l S`);
+  }
+  function fillRect(x, ty, w, h, rgb) {
+    const [r,g,b] = rgb;
+    ops.push(`${r} ${g} ${b} rg ${x} ${py(ty+h)} ${w} ${h} re f`);
+  }
+  function fitStr(s, maxPts, fontSize) {
+    const maxChars = Math.floor(maxPts / (fontSize * 0.52));
+    if (s.length <= maxChars) return s;
+    return s.slice(0, Math.max(1, maxChars-2)) + '..';
+  }
+  function finalizePage() {
+    const n = allPageOps.length + 1;
+    hline(ML, PH-MB+6, ML+CW, 0.4, [0.88,0.86,0.83]);
+    txt(ML, PH-MB+10, 'San Miguel Contadores  ·  Control de Horas', 'F1', 7.5, [0.6,0.56,0.52]);
+    txt(ML+CW-36, PH-MB+10, 'Pag. '+n, 'F1', 7.5, [0.6,0.56,0.52]);
+    allPageOps.push([...ops]);
+    ops = []; cy = MT;
+  }
+
+  const drawTableHeader = (colW) => {
+    fillRect(ML, cy, CW, 15, [0.1,0.1,0.1]);
+    txt(ML+5, cy+4, 'Cliente', 'F2', 8.5, [1,1,1]);
+    txt(ML+colW[0]+5, cy+4, 'Horas ('+periodLabel+')', 'F2', 8.5, [1,1,1]);
+    cy += 15;
+  };
+
+  // Header
+  txt(ML, cy, 'Listado de Clientes', 'F2', 20, [0.1,0.1,0.1]);
+  cy += 26;
+  txt(ML, cy, 'San Miguel Contadores', 'F1', 11, [0.35,0.32,0.28]);
+  cy += 15;
+  txt(ML, cy, 'Período: '+periodLabel+'     Total: '+horasText(totalHs)+' hs     '+clientes.length+' clientes', 'F1', 9, [0.35,0.32,0.28]);
+  cy += 9;
+  fillRect(ML, cy, CW, 2.5, [0.8,0.35,0.23]);
+  cy += 14;
+
+  const colW = [CW*0.70, CW*0.30];
+  drawTableHeader(colW);
+
+  clientes.forEach((c, i) => {
+    if (cy + 14 > PH - MB - 10) {
+      finalizePage();
+      fillRect(ML, cy, CW, 2, [0.8,0.35,0.23]);
+      cy += 10;
+      drawTableHeader(colW);
+    }
+    const hs = horasPorCliente[c.id] || 0;
+    if (i % 2 === 0) fillRect(ML, cy, CW, 13, [0.97,0.94,0.91]);
+    txt(ML+5, cy+3, fitStr(c.nombre, colW[0]-10, 9), 'F1', 9, [0.1,0.1,0.1]);
+    txt(ML+colW[0]+5, cy+3, horasText(hs)+' hs', hs > 0 ? 'F2' : 'F1', 9, hs > 0 ? [0.1,0.1,0.1] : [0.6,0.56,0.52]);
+    hline(ML, cy+13, ML+CW, 0.3);
+    cy += 13;
+  });
+
+  // Total row
+  fillRect(ML, cy, CW, 14, [0.99,0.94,0.93]);
+  txt(ML+5, cy+4, 'TOTAL', 'F2', 9, [0.8,0.35,0.23]);
+  txt(ML+colW[0]+5, cy+4, horasText(totalHs)+' hs', 'F2', 9, [0.8,0.35,0.23]);
+  cy += 14;
+  finalizePage();
+
+  // Build PDF structure
+  const nP = allPageOps.length;
+  const idStream = i => 5 + i;
+  const idPage   = i => 5 + nP + i;
+  const total    = 4 + nP * 2;
+  const defs = {};
+  defs[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+  defs[2] = `<< /Type /Pages /Kids [${Array.from({length:nP},(_,i)=>idPage(i)+' 0 R').join(' ')}] /Count ${nP} >>`;
+  defs[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+  defs[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+  for (let i=0; i<nP; i++) {
+    const s = allPageOps[i].join('\n');
+    defs[idStream(i)] = `<< /Length ${s.length} >>\nstream\n${s}\nendstream`;
+    defs[idPage(i)]   = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents ${idStream(i)} 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>`;
+  }
+  let pdf = '%PDF-1.4\n';
+  const off = {};
+  for (let id=1; id<=total; id++) { off[id] = pdf.length; pdf += `${id} 0 obj\n${defs[id]}\nendobj\n`; }
+  const xref = pdf.length;
+  pdf += `xref\n0 ${total+1}\n0000000000 65535 f \n`;
+  for (let id=1; id<=total; id++) pdf += String(off[id]).padStart(10,'0')+' 00000 n \n';
+  pdf += `trailer\n<< /Size ${total+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  const bytes = new Uint8Array(pdf.length);
+  for (let i=0; i<pdf.length; i++) bytes[i] = pdf.charCodeAt(i) & 0xFF;
+  const blob = new Blob([bytes], {type:'application/pdf'});
+  const fecha = today().replace(/-/g,'');
+  triggerDownload(URL.createObjectURL(blob), `clientes_${fecha}.pdf`);
+  showToast('✅ PDF descargado');
+}
+
 // ── Reportes tab ───────────────────────────────────────────────
 function getFilteredRegistros(period, clienteId) {
   let registros = STORE.registros();
@@ -1533,7 +1810,7 @@ function renderTabReportes() {
       return `<div class="report-entry">
         <div style="width:9px;height:9px;border-radius:50%;background:${c.color};flex-shrink:0;margin-top:4px"></div>
         <div class="report-entry-left">
-          <div style="font-size:13px;font-weight:700;color:var(--text)">${c.nombre}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text)">${c.nombre} <span class="tipo-badge tipo-badge--${r.tipoTarea||'rutinaria'}">${r.tipoTarea === 'extraordinaria' ? '⭐ Extraordinaria' : '⚙️ Rutinaria'}</span></div>
           <div class="report-entry-fecha">${formatDate(r.fecha)}</div>
           <div class="report-entry-detalle">${r.detalle}</div>
         </div>
@@ -1600,12 +1877,14 @@ function exportarExcel() {
   const totalHs = registros.reduce((s,r) => s + r.horas, 0);
 
   // Filas de detalle
+  const tipoLabel = t => t === 'extraordinaria' ? 'Extraordinaria' : 'Rutinaria';
   const filas = registros.map(r => {
     const c = clienteMap[r.clienteId] || { nombre:'Desconocido' };
     return `<tr>
       <td style="mso-number-format:'DD/MM/YYYY'">${formatDate(r.fecha)}</td>
       <td>${escXml(c.nombre)}</td>
       <td style="mso-number-format:'0.00'">${r.horas}</td>
+      <td>${escXml(tipoLabel(r.tipoTarea))}</td>
       <td>${escXml(r.detalle)}</td>
     </tr>`;
   }).join('');
@@ -1663,6 +1942,7 @@ function exportarExcel() {
       <th>Fecha</th>
       <th>Cliente</th>
       <th>Horas</th>
+      <th>Tipo</th>
       <th>Descripción</th>
     </tr>
   </thead>
@@ -1671,6 +1951,7 @@ function exportarExcel() {
     <tr class="total-row">
       <td colspan="2"><b>TOTAL</b></td>
       <td><b>${totalHs}</b></td>
+      <td></td>
       <td></td>
     </tr>
   </tbody>
@@ -1823,20 +2104,22 @@ function exportarPDF() {
   checkPage(50);
   txt(ML, cy, 'DETALLE DE REGISTROS', 'F2', 8.5, [0.6,0.56,0.52]);
   cy += 13;
-  const dW = [65, 125, 44, CW-234];
+  const dW = [60, 110, 36, 82, CW-288];
   const drawDetalleHeader = () => {
     fillRect(ML, cy, CW, 15, [0.1,0.1,0.1]);
-    txt(ML+5,        cy+4, 'Fecha',       'F2', 8.5, [1,1,1]);
-    txt(ML+dW[0]+5,  cy+4, 'Cliente',     'F2', 8.5, [1,1,1]);
-    txt(ML+dW[0]+dW[1]+5, cy+4, 'Horas', 'F2', 8.5, [1,1,1]);
-    txt(ML+dW[0]+dW[1]+dW[2]+5, cy+4, 'Descripcion', 'F2', 8.5, [1,1,1]);
+    txt(ML+5,                          cy+4, 'Fecha',       'F2', 8.5, [1,1,1]);
+    txt(ML+dW[0]+5,                    cy+4, 'Cliente',     'F2', 8.5, [1,1,1]);
+    txt(ML+dW[0]+dW[1]+5,             cy+4, 'Horas',       'F2', 8.5, [1,1,1]);
+    txt(ML+dW[0]+dW[1]+dW[2]+5,      cy+4, 'Tipo',        'F2', 8.5, [1,1,1]);
+    txt(ML+dW[0]+dW[1]+dW[2]+dW[3]+5, cy+4, 'Descripcion', 'F2', 8.5, [1,1,1]);
     cy += 15;
   };
   drawDetalleHeader();
 
-  let needsHeader = false;
   registros.forEach((r,i) => {
     const c = clienteMap[r.clienteId]||{nombre:'?'};
+    const tipoStr = r.tipoTarea === 'extraordinaria' ? 'Extraordinaria' : 'Rutinaria';
+    const tipoColor = r.tipoTarea === 'extraordinaria' ? [0.45,0.25,0.05] : [0.35,0.32,0.28];
     if (cy + 14 > PH - MB - 10) {
       finalizePage();
       fillRect(ML, cy, CW, 2, [0.8,0.35,0.23]);
@@ -1844,10 +2127,11 @@ function exportarPDF() {
       drawDetalleHeader();
     }
     if (i%2===0) fillRect(ML, cy, CW, 13, [0.97,0.94,0.91]);
-    txt(ML+5, cy+3, formatDate(r.fecha), 'F1', 8.5, [0.1,0.1,0.1]);
-    txt(ML+dW[0]+5, cy+3, fitStr(c.nombre, dW[1]-8, 8.5), 'F1', 8.5, [0.1,0.1,0.1]);
-    txt(ML+dW[0]+dW[1]+5, cy+3, horasText(r.horas), 'F2', 8.5, [0.1,0.1,0.1]);
-    txt(ML+dW[0]+dW[1]+dW[2]+5, cy+3, fitStr(r.detalle, dW[3]-8, 8.5), 'F1', 8.5, [0.35,0.32,0.28]);
+    txt(ML+5,                          cy+3, formatDate(r.fecha),                    'F1', 8.5, [0.1,0.1,0.1]);
+    txt(ML+dW[0]+5,                    cy+3, fitStr(c.nombre, dW[1]-8, 8.5),        'F1', 8.5, [0.1,0.1,0.1]);
+    txt(ML+dW[0]+dW[1]+5,             cy+3, horasText(r.horas),                    'F2', 8.5, [0.1,0.1,0.1]);
+    txt(ML+dW[0]+dW[1]+dW[2]+5,      cy+3, tipoStr,                               'F1', 8.5, tipoColor);
+    txt(ML+dW[0]+dW[1]+dW[2]+dW[3]+5, cy+3, fitStr(r.detalle, dW[4]-8, 8.5),      'F1', 8.5, [0.35,0.32,0.28]);
     hline(ML, cy+13, ML+CW, 0.3);
     cy += 13;
   });
