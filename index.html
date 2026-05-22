@@ -3,1172 +3,2419 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control Horas · San Miguel Contadores</title>
+  <title>Control de Horas</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      color-scheme: light;
+      --bg:        #f5f0e8;
+      --surface:   #ffffff;
+      --text:      #1a1a1a;
+      --text-2:    #5a5248;
+      --text-3:    #9a9086;
+      --accent:    #cc5a3a;
+      --accent-lt: #fdf0ec;
+      --accent-md: #f5d5cb;
+      --border:    #e8e2d8;
+      --shadow:    0 2px 12px rgba(0,0,0,0.07);
+      --shadow-hv: 0 6px 24px rgba(0,0,0,0.14);
+      --radius:    16px;
+      --radius-sm: 10px;
+      --radius-pill: 100px;
+      --danger:    #b91c1c;
+      --danger-lt: #fef2f2;
+      --danger-md: #fecaca;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #f0f0ee;
-      color: #111;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
-      font-size: 14px;
     }
 
-    /* ============ LOGIN ============ */
-    #login-screen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .login-card {
-      background: #f5f5f3;
-      border: 0.5px solid #ddd;
-      border-radius: 14px;
-      padding: 40px 48px;
-      width: 360px;
-      text-align: center;
-    }
-    .login-logo {
-      font-size: 11px;
-      font-weight: 600;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 10px;
-    }
-    .login-title {
-      font-size: 24px;
-      font-weight: 600;
-      color: #111;
-      margin-bottom: 6px;
-    }
-    .login-sub {
-      font-size: 13px;
-      color: #555;
-      margin-bottom: 28px;
-    }
-    .login-card input[type="password"] {
-      width: 100%;
-      padding: 10px 14px;
-      border: 0.5px solid #ddd;
-      border-radius: 8px;
-      background: #fff;
-      font-size: 15px;
-      outline: none;
-      margin-bottom: 12px;
-      color: #111;
-      font-family: system-ui, sans-serif;
-    }
-    .login-card input[type="password"]:focus { border-color: #C1440E; }
-    .btn-login {
-      width: 100%;
-      padding: 10px;
-      background: #C1440E;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .btn-login:hover { background: #A33A0C; }
-    .login-error {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #C1440E;
-      min-height: 18px;
-    }
-
-    /* ============ APP ============ */
-    #app { display: none; flex-direction: column; min-height: 100vh; }
-
-    .app-header {
-      background: #f5f5f3;
-      border-bottom: 0.5px solid #ddd;
-      padding: 13px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    /* ── Header ─────────────────────────────────────────────────── */
+    .header {
+      background: var(--bg);
+      padding: 24px 24px 0;
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 20;
     }
-    .app-header-brand {
-      font-size: 11px;
-      font-weight: 600;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 2px;
-    }
-    .app-header-title {
-      font-size: 19px;
-      font-weight: 600;
-      color: #111;
-    }
-    .app-header-title em { color: #C1440E; font-style: italic; }
-    .app-header-date input[type="date"] {
-      border: 0.5px solid #ddd;
-      border-radius: 8px;
-      padding: 7px 11px;
-      font-size: 13px;
-      background: #fff;
-      color: #111;
-      outline: none;
-      cursor: pointer;
-      font-family: system-ui, sans-serif;
-    }
-    .app-header-date input[type="date"]:focus { border-color: #C1440E; }
-
-    /* Tabs */
-    .tab-nav {
+    .header-top {
       display: flex;
-      gap: 2px;
-      padding: 10px 24px 0;
-      background: #f5f5f3;
-      border-bottom: 0.5px solid #ddd;
-    }
-    .tab-btn {
-      padding: 8px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #555;
-      background: transparent;
-      border: none;
-      border-bottom: 2.5px solid transparent;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: -0.5px;
-      transition: color 0.12s;
-    }
-    .tab-btn:hover { color: #111; }
-    .tab-btn.active { color: #C1440E; border-bottom-color: #C1440E; }
-    .tab-badge {
-      background: #ddd;
-      color: #555;
-      font-size: 11px;
-      font-weight: 600;
-      border-radius: 10px;
-      padding: 1px 7px;
-      min-width: 22px;
-      text-align: center;
-    }
-    .tab-btn.active .tab-badge { background: #C1440E; color: #fff; }
-
-    .tab-content { padding: 24px; flex: 1; }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
-    /* ============ FORMS ============ */
-    .form-card {
-      background: #f5f5f3;
-      border: 0.5px solid #ddd;
-      border-radius: 10px;
-      padding: 24px;
-      max-width: 520px;
-    }
-    .form-card h2 {
-      font-size: 15px;
-      font-weight: 600;
-      color: #111;
-      margin-bottom: 20px;
-    }
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-    .form-group { display: flex; flex-direction: column; gap: 5px; }
-    .form-group.full { grid-column: 1 / -1; }
-    label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #555;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    input[type="text"],
-    input[type="number"],
-    input[type="date"],
-    select,
-    textarea {
-      padding: 9px 12px;
-      border: 0.5px solid #ddd;
-      border-radius: 8px;
-      background: #fff;
-      font-size: 14px;
-      color: #111;
-      outline: none;
-      font-family: system-ui, sans-serif;
-      width: 100%;
-    }
-    input:focus, select:focus, textarea:focus { border-color: #C1440E; }
-    textarea { resize: vertical; min-height: 76px; }
-
-    .btn-primary {
-      background: #C1440E;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 9px 22px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-    .btn-primary:hover { background: #A33A0C; }
-    .btn-secondary {
-      background: #fff;
-      color: #111;
-      border: 0.5px solid #ddd;
-      border-radius: 8px;
-      padding: 9px 22px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .btn-secondary:hover { background: #f0f0ee; }
-    .btn-danger {
-      background: transparent;
-      color: #C1440E;
-      border: none;
-      font-size: 13px;
-      cursor: pointer;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-weight: 600;
-    }
-    .btn-danger:hover { background: #fef0eb; }
-    .success-msg {
-      font-size: 13px;
-      color: #27500A;
-      background: #EAF3DE;
-      border: 0.5px solid #97C459;
-      border-radius: 8px;
-      padding: 8px 12px;
-      margin-top: 12px;
-      display: none;
-    }
-
-    /* ============ CLIENTES ============ */
-    .clients-layout {
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 20px;
-      align-items: start;
-      max-width: 900px;
-    }
-    .client-list-card {
-      background: #f5f5f3;
-      border: 0.5px solid #ddd;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .client-list-header {
-      padding: 14px 20px;
-      border-bottom: 0.5px solid #ddd;
-      font-size: 14px;
-      font-weight: 600;
-      color: #111;
-      display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-    }
-    .client-count-lbl { font-size: 12px; color: #888; font-weight: 400; }
-    .client-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 20px;
-      border-bottom: 0.5px solid #eee;
-    }
-    .client-item:last-child { border-bottom: none; }
-    .client-name { font-size: 14px; color: #111; }
-    .client-empty {
-      padding: 40px 20px;
-      text-align: center;
-      color: #888;
-      font-size: 13px;
-    }
-
-    /* ============ REPORTES ============ */
-    .report-filters {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    .period-btns { display: flex; gap: 4px; }
-    .period-btn {
-      padding: 6px 15px;
-      font-size: 13px;
-      font-weight: 600;
-      border: 0.5px solid #ddd;
-      border-radius: 20px;
-      background: #fff;
-      color: #555;
-      cursor: pointer;
-    }
-    .period-btn.active { background: #111; color: #fff; border-color: #111; }
-    .client-filter select { padding: 6px 12px; font-size: 13px; }
-
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
       margin-bottom: 20px;
-      max-width: 700px;
     }
-    .metric-card {
-      background: #f5f5f3;
-      border: 0.5px solid #ddd;
-      border-radius: 10px;
-      padding: 20px 24px;
-      text-align: center;
-    }
-    .metric-value {
-      font-size: 34px;
-      font-weight: 600;
-      color: #111;
-      display: flex;
-      align-items: baseline;
-      justify-content: center;
-      gap: 3px;
-    }
-    .metric-unit { font-size: 14px; font-weight: 400; color: #888; }
-    .metric-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-top: 4px;
-    }
-
-    /* Chart */
-    .chart-card {
-      background: #f5f5f3;
-      border: 0.5px solid #ddd;
-      border-radius: 10px;
-      padding: 20px 24px;
-      margin-bottom: 20px;
-      max-width: 900px;
-    }
-    .chart-section-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 16px;
-    }
-    .chart-bars { display: flex; flex-direction: column; gap: 10px; }
-    .chart-bar-row {
-      display: grid;
-      grid-template-columns: 180px 1fr 56px;
+    .status-pill {
+      display: inline-flex;
       align-items: center;
-      gap: 12px;
-    }
-    .chart-bar-label {
-      font-size: 13px;
-      color: #111;
-      text-align: right;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .chart-bar-track {
-      background: #e5e5e3;
-      border-radius: 5px;
-      height: 28px;
-      overflow: hidden;
-    }
-    .chart-bar-fill {
-      height: 100%;
-      background: #C1440E;
-      border-radius: 5px;
-      transition: width 0.35s ease;
-    }
-    .chart-bar-value { font-size: 13px; font-weight: 600; color: #555; }
-    .chart-empty {
-      text-align: center;
-      color: #888;
-      font-size: 13px;
-      padding: 28px 0;
-    }
-
-    /* Records list */
-    .records-card {
-      background: #f5f5f3;
-      border: 0.5px solid #ddd;
-      border-radius: 10px;
-      overflow: hidden;
-      max-width: 900px;
-    }
-    .records-header {
-      padding: 14px 20px;
-      border-bottom: 0.5px solid #ddd;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .records-title { font-size: 14px; font-weight: 600; color: #111; }
-    .records-count { font-size: 13px; font-weight: 600; color: #C1440E; }
-    .record-item {
-      display: grid;
-      grid-template-columns: 1fr 72px 32px;
-      align-items: center;
-      gap: 12px;
-      padding: 13px 20px;
-      border-bottom: 0.5px solid #eee;
-    }
-    .record-item:last-child { border-bottom: none; }
-    .record-info { display: flex; flex-direction: column; gap: 2px; }
-    .record-client { font-size: 14px; font-weight: 600; color: #111; }
-    .record-date { font-size: 12px; color: #888; }
-    .record-desc { font-size: 13px; color: #555; margin-top: 2px; }
-    .record-hours { font-size: 18px; font-weight: 600; color: #111; text-align: right; }
-    .record-hours-unit { font-size: 12px; color: #888; font-weight: 400; }
-    .record-delete {
-      background: transparent;
-      border: none;
-      color: #ccc;
-      cursor: pointer;
-      font-size: 18px;
-      padding: 3px 6px;
-      border-radius: 4px;
-      line-height: 1;
-    }
-    .record-delete:hover { color: #C1440E; background: #fef0eb; }
-    .records-empty {
-      padding: 48px 20px;
-      text-align: center;
-      color: #888;
-      font-size: 13px;
-    }
-
-    /* ============ FOCO ============ */
-    .foco-layout { max-width: 420px; margin: 0 auto; }
-    .pomodoro-card {
-      background: #f5f5f3;
-      border: 0.5px solid #ddd;
-      border-radius: 14px;
-      padding: 40px 32px;
-      text-align: center;
-    }
-    .pomo-mode-lbl {
+      gap: 7px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      padding: 4px 12px 4px 10px;
       font-size: 11px;
-      font-weight: 600;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
+      font-weight: 500;
+      color: var(--text-2);
       margin-bottom: 10px;
     }
-    .pomo-timer {
-      font-size: 76px;
-      font-weight: 600;
-      color: #111;
-      letter-spacing: -3px;
-      line-height: 1;
-      margin-bottom: 6px;
-      font-variant-numeric: tabular-nums;
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
     }
-    .pomo-timer.break { color: #27500A; }
-    .pomo-progress {
-      height: 4px;
-      background: #e5e5e3;
-      border-radius: 2px;
-      margin: 16px 0 28px;
-      overflow: hidden;
+    h1 { font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -0.6px; line-height: 1.1; }
+    h1 span { color: var(--accent); font-style: italic; font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: 28px; }
+    .header-actions { display: flex; gap: 14px; align-items: center; flex-shrink: 0; padding-top: 4px; }
+    .date-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      padding: 7px 14px;
+      font-size: 12px; font-weight: 500; color: var(--text-2);
+      cursor: pointer; outline: none; font-family: inherit;
     }
-    .pomo-progress-fill {
-      height: 100%;
-      background: #C1440E;
-      border-radius: 2px;
-      transition: width 1s linear;
-    }
-    .pomo-progress-fill.break { background: #97C459; }
-    .pomo-client { margin-bottom: 24px; }
-    .pomo-client label { font-size: 12px; color: #888; display: block; margin-bottom: 6px; }
-    .pomo-client select { width: 100%; }
-    .pomo-btns { display: flex; gap: 10px; justify-content: center; }
-    .pomo-count { margin-top: 20px; font-size: 13px; color: #888; }
-    .pomo-count strong { color: #111; }
+    .date-input:hover { border-color: var(--text-3); }
 
-    /* Modal */
+/* ── Brasa (progreso del día 9-18h) ────────────────────── */
+    .brasa-slot {
+      flex: 1; display: flex; justify-content: center; align-items: center;
+    }
+    .brasa-widget {
+      display: flex; flex-direction: column; gap: 4px;
+      cursor: default; user-select: none; min-width: 200px;
+    }
+    .brasa-marks {
+      display: flex; justify-content: space-between; padding: 0 1px;
+      font-size: 10px; font-weight: 600; color: var(--text-3);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    }
+    .brasa-track {
+      position: relative; height: 9px; border-radius: 5px;
+      background: repeating-linear-gradient(
+        -58deg,
+        #ddd0b0 0px, #ddd0b0 4px,
+        #cbbf96 4px, #cbbf96 8px
+      );
+      overflow: visible;
+    }
+    .brasa-burned-overlay {
+      position: absolute; top: 0; left: 0; bottom: 0;
+      background: linear-gradient(to right, #0e0b06, #2c1c0c);
+      border-radius: 5px 0 0 5px;
+    }
+    .brasa-ember {
+      position: absolute; top: 50%; transform: translate(-50%, -50%);
+      width: 17px; height: 17px; border-radius: 50%; z-index: 3;
+      background: radial-gradient(circle, #fffce0 0%, #ffc830 30%, #ff6c10 65%, #c03000 100%);
+      box-shadow: 0 0 8px 5px rgba(255,140,20,0.85), 0 0 20px 10px rgba(255,80,0,0.38);
+      animation: brasa-pulse 2.2s ease-in-out infinite;
+    }
+    @keyframes brasa-pulse {
+      0%,100% { box-shadow: 0 0 8px 5px rgba(255,140,20,0.85), 0 0 20px 10px rgba(255,80,0,0.38); }
+      50%      { box-shadow: 0 0 13px 7px rgba(255,170,40,1),   0 0 30px 15px rgba(255,100,0,0.5); }
+    }
+    .brasa-info {
+      display: flex; align-items: center; gap: 5px; padding: 0 2px;
+      font-size: 11px; font-weight: 500; color: var(--text-3);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    }
+    .brasa-sep { opacity: 0.45; }
+
+    /* ── Tabs ─────────────────────────────────────────────────── */
+    .tabs-wrap { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 18px; }
+    .tabs-wrap::-webkit-scrollbar { display: none; }
+    .tab {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 16px; font-size: 12px; font-weight: 600;
+      border-radius: var(--radius-pill); border: 1px solid var(--border);
+      background: var(--surface); color: var(--text-2);
+      cursor: pointer; white-space: nowrap; transition: all 0.15s; user-select: none;
+    }
+    .tab:hover { border-color: var(--text-3); color: var(--text); }
+    .tab.active { background: var(--text); color: #fff; border-color: var(--text); }
+    .tab-badge {
+      font-size: 10px; font-weight: 700;
+      background: rgba(255,255,255,0.2);
+      padding: 1px 6px; border-radius: var(--radius-pill);
+      min-width: 18px; text-align: center;
+    }
+    .tab:not(.active) .tab-badge { background: var(--bg); color: var(--text-2); }
+
+    .divider { height: 1px; background: var(--border); margin: 0 24px; }
+    .content { padding: 20px 24px 80px; }
+
+    /* ── Cards ─────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 14px;
+    }
+    .card-danger {
+      background: var(--danger-lt);
+      border-color: var(--danger-md);
+    }
+    .card-title {
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-3); margin-bottom: 14px;
+    }
+    .card-title-danger { color: var(--danger); }
+
+    /* ── Form ──────────────────────────────────────────────────── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    @media (max-width: 500px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-label { font-size: 11px; font-weight: 600; color: var(--text-2); margin-bottom: 5px; display: block; }
+    .form-select, .form-text, .form-textarea {
+      width: 100%;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px; font-size: 13px; font-family: inherit;
+      color: var(--text); outline: none; transition: border-color 0.15s;
+    }
+    .form-select:focus, .form-text:focus, .form-textarea:focus { border-color: var(--accent); background: #fff; }
+    .form-textarea { min-height: 72px; resize: vertical; }
+
+    /* Horas chips */
+    .horas-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .hora-chip {
+      padding: 6px 12px; border-radius: var(--radius-pill);
+      border: 1px solid var(--border); background: var(--bg);
+      font-size: 12px; font-weight: 600; color: var(--text-2);
+      cursor: pointer; transition: all 0.12s; user-select: none;
+    }
+    .hora-chip:hover { border-color: var(--accent); color: var(--accent); }
+    .hora-chip.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .hora-custom { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+    .hora-custom input {
+      width: 80px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 6px 10px;
+      font-size: 13px; font-family: inherit; color: var(--text); outline: none;
+    }
+    .hora-custom input:focus { border-color: var(--accent); background: #fff; }
+    .hora-custom label { font-size: 12px; color: var(--text-2); font-weight: 500; }
+
+    /* Buttons */
+    .btn-primary {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: var(--radius-pill); padding: 10px 22px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s; font-family: inherit;
+    }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-ghost {
+      background: transparent; color: var(--text-2);
+      border: 1px solid var(--border); border-radius: var(--radius-pill);
+      padding: 8px 16px; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; font-family: inherit;
+    }
+    .btn-ghost:hover { border-color: var(--text-3); color: var(--text); }
+    .btn-danger-sm {
+      background: transparent; color: var(--accent);
+      border: 1px solid var(--accent-md); border-radius: var(--radius-pill);
+      padding: 5px 12px; font-size: 11px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; font-family: inherit;
+    }
+    .btn-danger-sm:hover { background: var(--accent-lt); }
+    .btn-edit-sm {
+      background: transparent; color: var(--text-2);
+      border: 1px solid var(--border); border-radius: var(--radius-pill);
+      padding: 5px 12px; font-size: 11px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; font-family: inherit;
+    }
+    .btn-edit-sm:hover { border-color: var(--text-3); color: var(--text); background: var(--bg); }
+    /* inline rename form */
+    .cliente-rename-form {
+      display: flex; gap: 6px; align-items: center; flex: 1;
+    }
+    .cliente-rename-input {
+      flex: 1; border: 1.5px solid var(--accent); border-radius: var(--radius-pill);
+      padding: 4px 12px; font-size: 13px; font-weight: 600; font-family: inherit;
+      background: #fff; color: var(--text); outline: none;
+    }
+    .btn-save-sm {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: var(--radius-pill); padding: 5px 12px;
+      font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit;
+      transition: opacity 0.15s;
+    }
+    .btn-save-sm:hover { opacity: 0.88; }
+    .btn-cancel-sm {
+      background: transparent; color: var(--text-3);
+      border: 1px solid var(--border); border-radius: var(--radius-pill);
+      padding: 5px 10px; font-size: 11px; font-weight: 600;
+      cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .btn-cancel-sm:hover { color: var(--text-2); border-color: var(--text-3); }
+    .btn-red {
+      background: var(--danger); color: #fff; border: none;
+      border-radius: var(--radius-pill); padding: 10px 22px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: opacity 0.15s; font-family: inherit;
+    }
+    .btn-red:hover { opacity: 0.85; }
+    .btn-green {
+      background: #16a34a; color: #fff; border: none;
+      border-radius: var(--radius-pill); padding: 10px 22px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: opacity 0.15s; font-family: inherit;
+    }
+    .btn-green:hover { opacity: 0.85; }
+    .btn-restore {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--bg); color: var(--text); border: 1.5px solid var(--border);
+      border-radius: var(--radius-pill); padding: 10px 22px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: all 0.15s; font-family: inherit;
+    }
+    .btn-restore:hover { border-color: var(--text-3); background: #fff; }
+
+    /* ── Entry items ────────────────────────────────────────────── */
+    .entry-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 13px 0; border-bottom: 1px solid var(--border);
+    }
+    .entry-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .entry-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .entry-info { flex: 1; min-width: 0; }
+    .entry-cliente { font-size: 13px; font-weight: 700; color: var(--text); }
+    .entry-detalle { font-size: 12px; color: var(--text-2); margin-top: 2px; line-height: 1.4; }
+    .entry-right { text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .entry-horas { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+    .entry-horas span { font-size: 11px; font-weight: 500; color: var(--text-3); }
+    .entry-actions { display: flex; gap: 4px; }
+    .entry-btn {
+      font-size: 13px; cursor: pointer; color: var(--text-3);
+      padding: 3px 7px; border-radius: 6px; transition: all 0.12s;
+      border: none; background: none;
+    }
+    .entry-btn:hover { color: var(--accent); background: var(--accent-lt); }
+
+    /* ── Summary chips ──────────────────────────────────────────── */
+    .summary-bar { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+    .summary-chip {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-pill); padding: 6px 14px 6px 10px;
+      font-size: 12px; font-weight: 600; color: var(--text-2);
+    }
+    .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .chip-val { color: var(--text); }
+
+    /* ── Clientes ───────────────────────────────────────────────── */
+    .cliente-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+    .cliente-row:last-child { border-bottom: none; }
+    .cliente-color-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .cliente-nombre { font-size: 13px; font-weight: 700; color: var(--text); flex: 1; }
+    .cliente-hours-badge {
+      font-size: 11px; font-weight: 600; color: var(--text-3);
+      background: var(--bg); padding: 3px 10px;
+      border-radius: var(--radius-pill); border: 1px solid var(--border);
+    }
+    .add-client-row { display: flex; gap: 8px; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .color-picker-wrap { position: relative; flex-shrink: 0; }
+    .color-preview { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; overflow: hidden; }
+    .color-preview input[type="color"] { opacity: 0; position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; border: none; }
+
+    /* ── Reportes ───────────────────────────────────────────────── */
+    .report-filters { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+    .report-cliente-filter { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .report-cliente-select { height: 34px; padding: 0 10px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--bg); font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text); cursor: pointer; transition: border-color .15s; min-width: 160px; max-width: 260px; }
+    .report-cliente-select:focus { outline: none; border-color: var(--text-3); }
+    .report-cliente-select.filtered { border-color: var(--accent); color: var(--accent); background: #fff5f2; }
+    .filter-pill {
+      padding: 6px 14px; border-radius: var(--radius-pill);
+      border: 1px solid var(--border); background: var(--surface);
+      font-size: 12px; font-weight: 600; color: var(--text-2);
+      cursor: pointer; transition: all 0.12s;
+    }
+    .filter-pill:hover { border-color: var(--text-3); color: var(--text); }
+    .filter-pill.active { background: var(--text); color: #fff; border-color: var(--text); }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    @media (max-width: 450px) { .stat-grid { grid-template-columns: 1fr; } }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; text-align: center; }
+    .stat-val { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -0.8px; }
+    .stat-val span { font-size: 13px; font-weight: 500; color: var(--text-3); }
+    .stat-lbl { font-size: 11px; color: var(--text-3); font-weight: 600; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .chart-wrap { position: relative; height: 220px; margin-bottom: 4px; }
+
+    .report-entry { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .report-entry:last-child { border-bottom: none; }
+    .report-entry-left { flex: 1; min-width: 0; }
+    .report-entry-fecha { font-size: 11px; color: var(--text-3); font-weight: 500; }
+    .report-entry-detalle { font-size: 12px; color: var(--text-2); line-height: 1.4; }
+    .report-entry-right { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .report-entry-hs { font-size: 14px; font-weight: 800; color: var(--text); }
+
+    /* Export & limpieza */
+    .export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    @media (max-width: 500px) { .export-grid { grid-template-columns: 1fr; } }
+    .section-divider { height: 1px; background: var(--border); margin: 16px 0; }
+    .warning-text { font-size: 12px; color: var(--danger); font-weight: 500; margin-top: 10px; line-height: 1.5; }
+    .delete-preview {
+      background: var(--danger-lt); border: 1px solid var(--danger-md);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      font-size: 12px; color: var(--danger); font-weight: 600;
+      margin: 12px 0; display: none;
+    }
+    .delete-preview.visible { display: block; }
+
+    /* ── Section row ────────────────────────────────────────────── */
+    .section-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .section-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .total-horas-badge { font-size: 13px; font-weight: 800; color: var(--accent); background: var(--accent-lt); padding: 4px 12px; border-radius: var(--radius-pill); }
+
+    /* ── Bars chart ─────────────────────────────────────────────── */
+    .cliente-bar-row { margin-bottom: 10px; }
+    .cliente-bar-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 4px; }
+    .cliente-bar-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .cliente-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+
+    /* ── Foco / Pomodoro (redesign) ────────────────────────────── */
+    .foco-main-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 28px 24px; margin-bottom: 14px; display: flex; gap: 28px; align-items: center; }
+    @media (max-width: 560px) { .foco-main-card { flex-direction: column; } }
+    .foco-clock-wrap { flex-shrink: 0; width: 185px; height: 185px; }
+    .foco-svg { width: 100%; height: 100%; overflow: visible; }
+    #timer-arc { transition: stroke-dashoffset 0.9s linear; }
+    .foco-right { flex: 1; min-width: 0; }
+    .foco-session-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--text-3); text-transform: uppercase; margin-bottom: 8px; }
+    .foco-session-title { font-size: 19px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; margin-bottom: 8px; line-height: 1.25; }
+    .foco-session-title em { font-style: italic; color: var(--accent); font-family: Georgia, 'Times New Roman', serif; font-weight: 400; }
+    .foco-session-desc { font-size: 12px; color: var(--text-2); line-height: 1.6; margin-bottom: 14px; }
+    .foco-pomo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .foco-pomo-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--text-3); text-transform: uppercase; white-space: nowrap; }
+    .foco-pomo-dots { display: flex; gap: 4px; align-items: center; }
+    .foco-reset-btn { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; line-height: 1; font-family: inherit; padding: 0; color: var(--text-3); transition: all .15s; flex-shrink: 0; }
+    .foco-reset-btn:hover { background: var(--border); color: var(--text); }
+    /* Píldoras de trabajo (naranja) */
+    .foco-pomo-dot { height: 8px; border-radius: 4px; background: var(--border); transition: background 0.3s; }
+    .foco-pomo-dot.work    { width: 16px; }
+    .foco-pomo-dot.brk-s   { width: 10px; } /* descanso corto */
+    .foco-pomo-dot.brk-l   { width: 14px; } /* descanso largo */
+    .foco-pomo-dot.work.done,  .foco-pomo-dot.work.active  { background: var(--accent); }
+    .foco-pomo-dot.brk-s.done, .foco-pomo-dot.brk-s.active { background: #16a34a; }
+    .foco-pomo-dot.brk-l.done, .foco-pomo-dot.brk-l.active { background: #0891b2; }
+    .foco-btns { display: flex; gap: 8px; }
+    .foco-main-btn { flex: 1; padding: 13px; border-radius: var(--radius-sm); background: var(--text); color: #fff; font-size: 14px; font-weight: 700; border: none; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+    .foco-main-btn:hover { opacity: .85; }
+    .foco-stop-btn { padding: 13px 18px; border-radius: var(--radius-sm); background: var(--bg); color: var(--text-2); font-size: 13px; font-weight: 700; border: 1px solid var(--border); cursor: pointer; font-family: inherit; transition: all .15s; white-space: nowrap; }
+    .foco-stop-btn:hover { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
+    .foco-break-select { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+    .foco-break-select-msg { text-align: center; font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 2px; }
+    .foco-break-btn { padding: 13px; border-radius: var(--radius-sm); background: #16a34a; color: #fff; font-size: 14px; font-weight: 700; border: none; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+    .foco-break-btn:hover { opacity: .85; }
+    .focus-dur-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 12px; color: var(--text-2); }
+    .focus-dur-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; line-height: 1; font-family: inherit; padding: 0; transition: background .12s; }
+    .focus-dur-btn:hover { background: var(--border); }
+    .focus-dur-val { min-width: 52px; text-align: center; font-weight: 700; font-size: 14px; }
+    .focus-tip-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin-bottom: 12px; }
+    .focus-tip { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text-2); line-height: 1.5; }
+    .focus-tip:last-child { border-bottom: none; }
+    .focus-tip-icon-wrap { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+
+    /* ── Empty state ────────────────────────────────────────────── */
+    .empty { text-align: center; padding: 50px 20px; color: var(--text-3); }
+    .empty .icon { font-size: 36px; margin-bottom: 10px; }
+    .empty h3 { font-size: 15px; font-weight: 700; color: var(--text-2); margin-bottom: 6px; }
+    .empty p { font-size: 12px; line-height: 1.6; }
+
+    /* ── Toast ──────────────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--text); color: #fff;
+      padding: 10px 20px; border-radius: var(--radius-pill);
+      font-size: 13px; font-weight: 600; box-shadow: var(--shadow-hv);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 9999; white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Edit Modal ─────────────────────────────────────────────── */
     .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.25);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
     }
-    .modal-overlay.show { display: flex; }
-    .modal-card {
-      background: #fff;
-      border-radius: 14px;
-      padding: 32px;
-      max-width: 380px;
-      width: 90%;
-      text-align: center;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 100%; max-width: 480px;
+      box-shadow: var(--shadow-hv);
+      transform: scale(0.95) translateY(10px);
+      transition: transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1);
     }
-    .modal-icon { font-size: 42px; margin-bottom: 12px; }
-    .modal-title { font-size: 18px; font-weight: 600; color: #111; margin-bottom: 8px; }
-    .modal-body { font-size: 14px; color: #555; margin-bottom: 22px; line-height: 1.55; }
-    .modal-btns { display: flex; gap: 10px; justify-content: center; }
+    .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+    .modal-title {
+      font-size: 17px; font-weight: 800; color: var(--text);
+      margin-bottom: 18px; letter-spacing: -0.3px;
+    }
+    .modal-actions { display: flex; gap: 8px; margin-top: 18px; }
 
-    /* Footer */
-    .app-footer {
-      text-align: center;
-      padding: 14px;
-      font-size: 11px;
-      color: #bbb;
-      border-top: 0.5px solid #eee;
-      margin-top: auto;
-    }
+    /* Modal hora chips */
+    #modal-horas-grid .hora-chip { font-size: 11px; padding: 5px 10px; }
   </style>
 </head>
 <body>
 
-<!-- ============ LOGIN ============ -->
-<div id="login-screen">
-  <div class="login-card">
-    <div class="login-logo">San Miguel Contadores</div>
-    <div class="login-title">Control Horas</div>
-    <div class="login-sub">Registro de horas por cliente</div>
-    <input type="password" id="pwd-input" placeholder="Contraseña"
-      onkeydown="if(event.key==='Enter') checkPwd()">
-    <button class="btn-login" onclick="checkPwd()">Ingresar</button>
-    <div class="login-error" id="pwd-error"></div>
+<!-- ── HEADER ───────────────────────────────────────────────────── -->
+<div class="header">
+  <div class="header-top">
+    <div class="title-block">
+      <div class="status-pill">
+        <div class="status-dot"></div>
+        Control de Horas · San Miguel Contadores
+      </div>
+      <h1>Horas por <span>Cliente</span></h1>
+    </div>
+    <div class="header-actions">
+      <input type="date" class="date-input" id="globalDate">
+    </div>
+  </div>
+  <div class="tabs-wrap">
+    <button class="tab active" data-tab="registrar">✏️ Registrar <span class="tab-badge" id="badge-hoy"></span></button>
+    <button class="tab" data-tab="clientes">👤 Clientes <span class="tab-badge" id="badge-clientes"></span></button>
+    <button class="tab" data-tab="reportes">📊 Reportes</button>
+    <button class="tab" data-tab="foco">⏱ Foco</button>
+    <div class="brasa-slot">
+      <div class="brasa-widget" id="brasa-widget" title="">
+        <div class="brasa-marks">
+          <span>09</span><span>12</span><span>15</span><span>18</span>
+        </div>
+        <div class="brasa-track">
+          <div class="brasa-burned-overlay" id="brasa-burned-overlay" style="width:0%"></div>
+          <div class="brasa-ember" id="brasa-ember" style="left:0%;opacity:0"></div>
+        </div>
+        <div class="brasa-info">
+          <span id="brasa-time">09:00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- ── TAB: REGISTRAR ───────────────────────────────────────────── -->
+<div class="content" id="tab-registrar">
+  <div class="card">
+    <div class="card-title">Nueva Entrada</div>
+    <div class="form-grid">
+      <div>
+        <label class="form-label">Cliente</label>
+        <select class="form-select" id="sel-cliente">
+          <option value="">— Seleccionar —</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Fecha</label>
+        <input type="date" class="form-select" id="entry-date">
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label class="form-label">Horas dedicadas</label>
+      <div class="horas-grid" id="horas-grid">
+        <div class="hora-chip" data-val="0.25">¼ h</div>
+        <div class="hora-chip" data-val="0.5">½ h</div>
+        <div class="hora-chip" data-val="0.75">¾ h</div>
+        <div class="hora-chip" data-val="1">1 h</div>
+        <div class="hora-chip" data-val="1.5">1½ h</div>
+        <div class="hora-chip" data-val="2">2 h</div>
+        <div class="hora-chip" data-val="3">3 h</div>
+        <div class="hora-chip" data-val="4">4 h</div>
+      </div>
+      <div class="hora-custom">
+        <input type="number" id="custom-horas" placeholder="0.00" min="0.25" step="0.25">
+        <label>hs personalizado</label>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <label class="form-label">Descripción del trabajo</label>
+      <textarea class="form-textarea" id="entry-detalle" placeholder="Ej: Liquidación IVA junio, revisión DDJJ IIGG, consulta laboral…"></textarea>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button class="btn-primary" id="btn-agregar-entrada">Registrar horas</button>
+      <button class="btn-ghost" id="btn-limpiar">Limpiar</button>
+    </div>
+  </div>
+  <div id="summary-day-wrap"></div>
+  <div id="entries-hoy-wrap"></div>
+</div>
+
+<!-- ── TAB: CLIENTES ────────────────────────────────────────────── -->
+<div class="content" id="tab-clientes" style="display:none">
+
+  <!-- Period filter -->
+  <div class="report-filters" id="clientes-filters">
+    <button class="filter-pill" data-period="today">Hoy</button>
+    <button class="filter-pill" data-period="week">Esta semana</button>
+    <button class="filter-pill" data-period="month">Este mes</button>
+    <button class="filter-pill active" data-period="all">Todo</button>
+  </div>
+
+  <div class="card">
+    <div class="section-row">
+      <div class="section-title">Mis Clientes</div>
+      <span class="total-horas-badge" id="total-clientes-badge">0 clientes</span>
+    </div>
+    <div class="add-client-row">
+      <div class="color-picker-wrap">
+        <div class="color-preview" id="color-preview" style="background:#cc5a3a">
+          <input type="color" id="client-color" value="#cc5a3a">
+        </div>
+      </div>
+      <input type="text" class="form-text" id="new-client-name" placeholder="Nombre del cliente" style="flex:1">
+      <button class="btn-primary" id="btn-add-client">Agregar</button>
+    </div>
+    <div id="clientes-list"></div>
+  </div>
+  <div class="card" id="clients-chart-card" style="display:none">
+    <div class="card-title">Horas por Cliente — <span id="clients-chart-period-label">Total histórico</span></div>
+    <div id="clients-bar-chart"></div>
   </div>
 </div>
 
-<!-- ============ APP ============ -->
-<div id="app">
-  <div class="app-header">
+<!-- ── TAB: REPORTES ────────────────────────────────────────────── -->
+<div class="content" id="tab-reportes" style="display:none">
+
+  <!-- Period filter -->
+  <div class="report-filters" id="report-filters">
+    <button class="filter-pill active" data-period="today">Hoy</button>
+    <button class="filter-pill" data-period="week">Esta semana</button>
+    <button class="filter-pill" data-period="month">Este mes</button>
+    <button class="filter-pill" data-period="all">Todo</button>
+  </div>
+
+  <!-- Client filter -->
+  <div class="report-cliente-filter">
+    <select class="report-cliente-select" id="report-cliente-select">
+      <option value="">👤 Todos los clientes</option>
+    </select>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-grid" id="stat-grid"></div>
+
+  <!-- Chart -->
+  <div class="card">
+    <div class="card-title">Distribución por Cliente</div>
+    <div class="chart-wrap"><canvas id="report-chart"></canvas></div>
+  </div>
+
+  <!-- Detail list -->
+  <div class="card">
+    <div class="section-row">
+      <div class="section-title">Detalle de Registros</div>
+      <span class="total-horas-badge" id="report-count-badge">0</span>
+    </div>
+    <div id="report-entries-list"></div>
+  </div>
+
+  <!-- ── Exportar ──────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">📥 Exportar</div>
+    <div class="export-grid">
+      <div>
+        <label class="form-label">Cliente</label>
+        <select class="form-select" id="exp-cliente">
+          <option value="">Todos los clientes</option>
+        </select>
+      </div>
+      <div></div>
+      <div>
+        <label class="form-label">Fecha desde</label>
+        <input type="date" class="form-select" id="exp-desde">
+      </div>
+      <div>
+        <label class="form-label">Fecha hasta</label>
+        <input type="date" class="form-select" id="exp-hasta">
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+      <button class="btn-green" id="btn-exportar">📊 Descargar Excel (.xls)</button>
+      <button class="btn-primary" id="btn-exportar-pdf">📄 Descargar PDF</button>
+      <span id="exp-preview" style="font-size:12px;color:var(--text-3);width:100%"></span>
+    </div>
+  </div>
+
+  <!-- ── Backup / Restore ─────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">💾 Backup y Restauración</div>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">
+      Guardá una copia de todos tus clientes y registros en un archivo JSON. Podés usarlo para restaurar los datos si se borran del navegador o para pasarlos a otro equipo.
+    </p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <button class="btn-primary" onclick="backupData()">⬇️ Descargar backup (.json)</button>
+      <label class="btn-restore" title="Seleccioná un archivo de backup para restaurar">
+        ⬆️ Restaurar desde backup
+        <input type="file" accept=".json" id="restore-file-input" style="display:none" onchange="restoreData(event)">
+      </label>
+    </div>
+    <div id="restore-status" style="margin-top:10px;font-size:12px;color:var(--text-3)"></div>
+  </div>
+
+  <!-- ── Limpiar Historial ──────────────────────────────────────── -->
+  <div class="card card-danger">
+    <div class="card-title card-title-danger">🗑 Limpiar Historial</div>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">
+      Eliminá registros anteriores a una fecha o dentro de un rango. Esta acción es <strong>irreversible</strong>.
+    </p>
+    <div class="export-grid">
+      <div>
+        <label class="form-label">Desde</label>
+        <input type="date" class="form-select" id="lim-desde">
+      </div>
+      <div>
+        <label class="form-label">Hasta</label>
+        <input type="date" class="form-select" id="lim-hasta">
+      </div>
+    </div>
+    <div class="delete-preview" id="delete-preview"></div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn-ghost" id="btn-preview-limpiar">Ver registros a eliminar</button>
+      <button class="btn-red" id="btn-limpiar-historial">Eliminar registros</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB: FOCO (POMODORO) ──────────────────────────────────── -->
+<div class="content" id="tab-foco" style="display:none">
+
+  <div class="foco-main-card">
+    <!-- Reloj circular -->
+    <div class="foco-clock-wrap">
+      <svg class="foco-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <!-- Pista de fondo -->
+        <circle cx="100" cy="100" r="85" fill="none" stroke="#e8e2d8" stroke-width="10"/>
+        <!-- Arco de progreso -->
+        <circle cx="100" cy="100" r="85" fill="none" stroke="#cc5a3a" stroke-width="10"
+                stroke-linecap="round" stroke-dasharray="534" stroke-dashoffset="0"
+                transform="rotate(-90 100 100)" id="timer-arc"/>
+        <!-- Tiempo grande -->
+        <text x="100" y="97" text-anchor="middle" dominant-baseline="central"
+              font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+              font-size="38" font-weight="800" fill="#1a1a1a" id="timer-text">25:00</text>
+        <!-- Estado -->
+        <text x="100" y="124" text-anchor="middle" dominant-baseline="central"
+              font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+              font-size="8.5" font-weight="700" letter-spacing="1.2">
+          <tspan fill="#cc5a3a" id="timer-dot-tspan"></tspan><tspan fill="#9a9086" id="timer-status">EN ESPERA</tspan>
+        </text>
+      </svg>
+    </div>
+
+    <!-- Panel derecho -->
+    <div class="foco-right">
+      <div class="foco-session-label">SESIÓN ACTUAL</div>
+      <div class="foco-session-title">
+        Bloque de foco — <em id="foco-dur-display">25 minutos</em>
+      </div>
+      <div class="foco-session-desc" id="foco-session-desc">
+        Trabajá sin interrupciones hasta que el reloj llegue a cero. Cuando suene, descansá 5 minutos antes de empezar otro bloque.
+      </div>
+
+      <div class="foco-pomo-row">
+        <span class="foco-pomo-label">BLOQUE <span id="foco-pomo-num">1</span> DE 4</span>
+        <div class="foco-pomo-dots" id="foco-pomo-dots">
+          <div class="foco-pomo-dot work"></div>
+          <div class="foco-pomo-dot brk-s"></div>
+          <div class="foco-pomo-dot work"></div>
+          <div class="foco-pomo-dot brk-s"></div>
+          <div class="foco-pomo-dot work"></div>
+          <div class="foco-pomo-dot brk-s"></div>
+          <div class="foco-pomo-dot work"></div>
+          <div class="foco-pomo-dot brk-l"></div>
+        </div>
+        <button class="foco-reset-btn" onclick="resetPomodoroDots()" title="Reiniciar sesión">↺</button>
+      </div>
+
+      <div class="focus-dur-row" id="focus-dur-wrap">
+        <span>Duración:</span>
+        <button class="focus-dur-btn" onclick="adjustDuration(-5)">−</button>
+        <span class="focus-dur-val" id="focus-dur-val">25 min</span>
+        <button class="focus-dur-btn" onclick="adjustDuration(+5)">+</button>
+      </div>
+
+      <!-- Selección de descanso largo (se muestra al completar 4 pomodoros) -->
+      <div class="foco-break-select" id="foco-break-select" style="display:none">
+        <div class="foco-break-select-msg">¿Cuánto tiempo de descanso?</div>
+        <button class="foco-break-btn" onclick="startBreak(15)">☕ 15 minutos</button>
+        <button class="foco-break-btn" onclick="startBreak(30)">🛋️ 30 minutos</button>
+      </div>
+
+      <div id="foco-btns-wrap">
+        <div class="foco-btns">
+          <button class="foco-main-btn" id="focus-btn" onclick="toggleFocus()">Empezar</button>
+          <button class="foco-stop-btn" id="focus-stop-btn" onclick="stopFocus()" style="display:none">■ Detener</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="focus-tip-title">Técnica Pomodoro</div>
+    <div class="focus-tip">
+      <div class="focus-tip-icon-wrap" style="background:#fff0e6">🎯</div>
+      <div><strong>Elegí una sola tarea</strong> antes de iniciar el temporizador. Trabajá sin interrupciones hasta que suene.</div>
+    </div>
+    <div class="focus-tip">
+      <div class="focus-tip-icon-wrap" style="background:#eef0ff">📵</div>
+      <div><strong>Silenciá notificaciones</strong> durante el bloque. Cada interrupción rompe el estado de foco.</div>
+    </div>
+    <div class="focus-tip">
+      <div class="focus-tip-icon-wrap" style="background:#edfff4">☕</div>
+      <div><strong>Descansá 5 minutos</strong> entre pomodoros. Cada 4 bloques, tomá un descanso largo de 15-30 min.</div>
+    </div>
+    <div class="focus-tip">
+      <div class="focus-tip-icon-wrap" style="background:#fff0e6">📝</div>
+      <div><strong>Registrá las horas</strong> al terminar cada bloque usando la pestaña Registrar para mantener el control de tu tiempo.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── EDIT MODAL ─────────────────────────────────────────────── -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">✏️ Editar Registro</div>
+    <div class="form-grid">
+      <div>
+        <label class="form-label">Cliente</label>
+        <select class="form-select" id="modal-cliente"></select>
+      </div>
+      <div>
+        <label class="form-label">Fecha</label>
+        <input type="date" class="form-select" id="modal-fecha">
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label class="form-label">Horas</label>
+      <div class="horas-grid" id="modal-horas-grid">
+        <div class="hora-chip" data-val="0.25">¼ h</div>
+        <div class="hora-chip" data-val="0.5">½ h</div>
+        <div class="hora-chip" data-val="0.75">¾ h</div>
+        <div class="hora-chip" data-val="1">1 h</div>
+        <div class="hora-chip" data-val="1.5">1½ h</div>
+        <div class="hora-chip" data-val="2">2 h</div>
+        <div class="hora-chip" data-val="3">3 h</div>
+        <div class="hora-chip" data-val="4">4 h</div>
+      </div>
+      <div class="hora-custom">
+        <input type="number" id="modal-custom-horas" placeholder="0.00" min="0.25" step="0.25">
+        <label>hs personalizado</label>
+      </div>
+    </div>
     <div>
-      <div class="app-header-brand">Control de Horas · San Miguel Contadores</div>
-      <div class="app-header-title">Horas por <em>Cliente</em></div>
+      <label class="form-label">Descripción</label>
+      <textarea class="form-textarea" id="modal-detalle"></textarea>
     </div>
-    <div class="app-header-date">
-      <input type="date" id="header-date" onchange="onHeaderDateChange()">
-    </div>
-  </div>
-
-  <div class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('registrar')" id="tab-btn-registrar">
-      ✏️ Registrar <span class="tab-badge" id="badge-registrar">0</span>
-    </button>
-    <button class="tab-btn" onclick="switchTab('clientes')" id="tab-btn-clientes">
-      👤 Clientes <span class="tab-badge" id="badge-clientes">0</span>
-    </button>
-    <button class="tab-btn" onclick="switchTab('reportes')" id="tab-btn-reportes">
-      📊 Reportes
-    </button>
-    <button class="tab-btn" onclick="switchTab('foco')" id="tab-btn-foco">
-      ⏱ Foco
-    </button>
-  </div>
-
-  <div class="tab-content">
-
-    <!-- REGISTRAR -->
-    <div class="tab-panel active" id="tab-registrar">
-      <div class="form-card">
-        <h2>Nuevo registro de horas</h2>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Cliente</label>
-            <select id="reg-client"></select>
-          </div>
-          <div class="form-group">
-            <label>Fecha</label>
-            <input type="date" id="reg-date">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Horas trabajadas</label>
-            <input type="number" id="reg-hours" min="0.25" max="24" step="0.25" placeholder="ej: 2.5">
-          </div>
-          <div class="form-group"></div>
-        </div>
-        <div class="form-group full" style="margin-bottom:0">
-          <label>Descripción / Tarea</label>
-          <textarea id="reg-desc" placeholder="Ej: Revisión liquidación IVA, atención consulta, preparación DDJJ..."></textarea>
-        </div>
-        <button class="btn-primary" onclick="saveRecord()">Registrar horas</button>
-        <div class="success-msg" id="reg-success">✓ Horas registradas correctamente.</div>
-      </div>
-    </div>
-
-    <!-- CLIENTES -->
-    <div class="tab-panel" id="tab-clientes">
-      <div class="clients-layout">
-        <div class="client-list-card">
-          <div class="client-list-header">
-            Clientes activos
-            <span class="client-count-lbl" id="client-count-lbl">0 clientes</span>
-          </div>
-          <div id="client-list-body"></div>
-        </div>
-        <div class="form-card">
-          <h2>Agregar cliente</h2>
-          <div class="form-group">
-            <label>Nombre del cliente</label>
-            <input type="text" id="new-client-name" placeholder="Ej: Farmamondo SRL"
-              onkeydown="if(event.key==='Enter') addClient()">
-          </div>
-          <button class="btn-primary" onclick="addClient()" style="margin-top:12px">Agregar cliente</button>
-          <div class="success-msg" id="client-success">✓ Cliente agregado.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- REPORTES -->
-    <div class="tab-panel" id="tab-reportes">
-      <div class="report-filters">
-        <div class="period-btns">
-          <button class="period-btn active" onclick="setPeriod('hoy')" id="period-hoy">Hoy</button>
-          <button class="period-btn" onclick="setPeriod('semana')" id="period-semana">Esta semana</button>
-          <button class="period-btn" onclick="setPeriod('mes')" id="period-mes">Este mes</button>
-          <button class="period-btn" onclick="setPeriod('todo')" id="period-todo">Todo</button>
-        </div>
-        <div class="client-filter">
-          <select id="filter-client" onchange="renderReportes()">
-            <option value="">👤 Todos los clientes</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-value" id="metric-horas">0<span class="metric-unit">hs</span></div>
-          <div class="metric-label">Total horas</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-value" id="metric-registros">0</div>
-          <div class="metric-label">Registros</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-value" id="metric-clientes">0</div>
-          <div class="metric-label">Clientes</div>
-        </div>
-      </div>
-
-      <div class="chart-card">
-        <div class="chart-section-title">Distribución por cliente</div>
-        <div class="chart-bars" id="chart-bars"></div>
-      </div>
-
-      <div class="records-card">
-        <div class="records-header">
-          <span class="records-title">Detalle de registros</span>
-          <span class="records-count" id="records-count-lbl">0 registros</span>
-        </div>
-        <div id="records-list"></div>
-      </div>
-    </div>
-
-    <!-- FOCO -->
-    <div class="tab-panel" id="tab-foco">
-      <div class="foco-layout">
-        <div class="pomodoro-card">
-          <div class="pomo-mode-lbl" id="pomo-mode-lbl">TRABAJO · 25 min</div>
-          <div class="pomo-timer" id="pomo-timer">25:00</div>
-          <div class="pomo-progress">
-            <div class="pomo-progress-fill" id="pomo-progress" style="width:100%"></div>
-          </div>
-          <div class="pomo-client">
-            <label>Cliente activo</label>
-            <select id="pomo-client">
-              <option value="">Sin cliente</option>
-            </select>
-          </div>
-          <div class="pomo-btns">
-            <button class="btn-primary" id="pomo-start-btn" onclick="pomodoroToggle()">Iniciar</button>
-            <button class="btn-secondary" onclick="pomodoroReset()">Reiniciar</button>
-          </div>
-          <div class="pomo-count">Pomodoros hoy: <strong id="pomo-count">0</strong></div>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /tab-content -->
-
-  <div class="app-footer">San Miguel Contadores · Control Horas · Uso interno</div>
-</div><!-- /app -->
-
-<!-- MODAL: Pomodoro completado -->
-<div class="modal-overlay" id="pomo-modal">
-  <div class="modal-card">
-    <div class="modal-icon">🍅</div>
-    <div class="modal-title">¡Pomodoro completado!</div>
-    <div class="modal-body" id="pomo-modal-body">Trabajaste 25 minutos. ¿Querés registrar las horas?</div>
-    <div class="modal-btns">
-      <button class="btn-primary" onclick="pomodoroLogAndContinue()">Registrar horas</button>
-      <button class="btn-secondary" onclick="pomodoroSkipAndBreak()">No registrar</button>
+    <div class="modal-actions">
+      <button class="btn-primary" id="btn-guardar-edicion">Guardar cambios</button>
+      <button class="btn-ghost" id="btn-cancelar-edicion">Cancelar</button>
     </div>
   </div>
 </div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
 
 <script>
-// ============================================================
-// CONFIG
-// ============================================================
-const PWD = 'horas2026';
-const KEYS = {
-  clients: 'smc_ctrl_clients',
-  records:  'smc_ctrl_records',
-  pomoBase: 'smc_ctrl_pomo_'
+// ── Storage ────────────────────────────────────────────────────
+const STORE = {
+  clientes:      () => JSON.parse(localStorage.getItem('clientes') || '[]'),
+  registros:     () => JSON.parse(localStorage.getItem('registros') || '[]'),
+  saveClientes:  (d) => localStorage.setItem('clientes', JSON.stringify(d)),
+  saveRegistros: (d) => localStorage.setItem('registros', JSON.stringify(d)),
 };
-const DEFAULT_CLIENTS = [
-  { id: 'c1', name: 'OSDE' },
-  { id: 'c2', name: 'Farmamondo SRL' },
-  { id: 'c3', name: 'Administración Estudio' },
-  { id: 'c4', name: 'Koipay Argentina SA' }
-];
 
-// ============================================================
-// AUTH
-// ============================================================
-function checkPwd() {
-  if (document.getElementById('pwd-input').value === PWD) {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    init();
-  } else {
-    document.getElementById('pwd-error').textContent = 'Contraseña incorrecta.';
-    document.getElementById('pwd-input').value = '';
-  }
-}
-
-// ============================================================
-// DATA
-// ============================================================
-function getClients() {
-  const s = localStorage.getItem(KEYS.clients);
-  if (!s) { localStorage.setItem(KEYS.clients, JSON.stringify(DEFAULT_CLIENTS)); return DEFAULT_CLIENTS; }
-  return JSON.parse(s);
-}
-function saveClients(c) { localStorage.setItem(KEYS.clients, JSON.stringify(c)); }
-
-function getRecords() {
-  const s = localStorage.getItem(KEYS.records);
-  return s ? JSON.parse(s) : [];
-}
-function saveRecords(r) { localStorage.setItem(KEYS.records, JSON.stringify(r)); }
-
-function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
-
-function todayStr() {
+// ── Helpers ────────────────────────────────────────────────────
+function today() {
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
-// ============================================================
-// INIT
-// ============================================================
-function init() {
-  const today = todayStr();
-  document.getElementById('header-date').value = today;
-  document.getElementById('reg-date').value = today;
-  updateBadges();
-  renderRegistrar();
-  renderClientes();
-  renderReportes();
-  renderFoco();
-}
-
-function onHeaderDateChange() {
-  document.getElementById('reg-date').value = document.getElementById('header-date').value;
-}
-
-// ============================================================
-// TABS
-// ============================================================
-function switchTab(name) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  document.getElementById('tab-btn-' + name).classList.add('active');
-  if (name === 'reportes')  renderReportes();
-  if (name === 'clientes')  renderClientes();
-  if (name === 'registrar') renderRegistrar();
-  if (name === 'foco')      renderFoco();
-}
-
-function updateBadges() {
-  const today = todayStr();
-  const todayCount = getRecords().filter(r => r.date === today).length;
-  document.getElementById('badge-registrar').textContent = todayCount;
-  document.getElementById('badge-clientes').textContent = getClients().length;
-}
-
-// ============================================================
-// REGISTRAR
-// ============================================================
-function renderRegistrar() {
-  const sel = document.getElementById('reg-client');
-  const cur = sel.value;
-  const clients = getClients();
-  sel.innerHTML = clients.length
-    ? clients.map(c => `<option value="${c.id}"${c.id === cur ? ' selected' : ''}>${esc(c.name)}</option>`).join('')
-    : '<option value="">— Sin clientes —</option>';
-}
-
-function saveRecord() {
-  const clientId = document.getElementById('reg-client').value;
-  const date     = document.getElementById('reg-date').value;
-  const hours    = parseFloat(document.getElementById('reg-hours').value);
-  const desc     = document.getElementById('reg-desc').value.trim();
-
-  if (!clientId)        return alert('Seleccioná un cliente.');
-  if (!date)            return alert('Seleccioná una fecha.');
-  if (!hours || hours <= 0) return alert('Ingresá una cantidad de horas válida.');
-
-  const client  = getClients().find(c => c.id === clientId);
-  const records = getRecords();
-  records.push({
-    id: uid(),
-    clientId,
-    clientName: client ? client.name : 'Desconocido',
-    date,
-    hours,
-    description: desc,
-    createdAt: Date.now()
-  });
-  saveRecords(records);
-
-  document.getElementById('reg-hours').value = '';
-  document.getElementById('reg-desc').value  = '';
-  showSuccess('reg-success');
-  updateBadges();
-}
-
-// ============================================================
-// CLIENTES
-// ============================================================
-function renderClientes() {
-  const clients = getClients();
-  const body    = document.getElementById('client-list-body');
-  document.getElementById('client-count-lbl').textContent =
-    `${clients.length} ${clients.length === 1 ? 'cliente' : 'clientes'}`;
-
-  body.innerHTML = clients.length
-    ? clients.map(c => `
-        <div class="client-item">
-          <span class="client-name">${esc(c.name)}</span>
-          <button class="btn-danger" onclick="deleteClient('${c.id}')">Eliminar</button>
-        </div>`).join('')
-    : '<div class="client-empty">Sin clientes cargados.</div>';
-}
-
-function addClient() {
-  const input = document.getElementById('new-client-name');
-  const name  = input.value.trim();
-  if (!name) return;
-  const clients = getClients();
-  if (clients.find(c => c.name.toLowerCase() === name.toLowerCase()))
-    return alert('Ya existe un cliente con ese nombre.');
-  clients.push({ id: uid(), name });
-  saveClients(clients);
-  input.value = '';
-  showSuccess('client-success');
-  renderClientes();
-  renderRegistrar();
-  renderFoco();
-  updateBadges();
-}
-
-function deleteClient(id) {
-  const clients = getClients();
-  const c = clients.find(x => x.id === id);
-  if (!c || !confirm(`¿Eliminar "${c.name}"?\nLos registros de horas existentes se conservarán.`)) return;
-  saveClients(clients.filter(x => x.id !== id));
-  renderClientes();
-  renderRegistrar();
-  renderFoco();
-  updateBadges();
-}
-
-// ============================================================
-// REPORTES
-// ============================================================
-let currentPeriod = 'hoy';
-
-function setPeriod(p) {
-  currentPeriod = p;
-  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('period-' + p).classList.add('active');
-  renderReportes();
-}
-
-function getFilteredRecords() {
-  const all          = getRecords();
-  const clientFilter = document.getElementById('filter-client')?.value || '';
-  const today        = todayStr();
-  const now          = new Date();
-  let filtered       = all;
-
-  if (currentPeriod === 'hoy') {
-    filtered = filtered.filter(r => r.date === today);
-  } else if (currentPeriod === 'semana') {
-    const dow = now.getDay();
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - ((dow + 6) % 7));
-    const startStr = startOfWeek.toISOString().slice(0, 10);
-    filtered = filtered.filter(r => r.date >= startStr && r.date <= today);
-  } else if (currentPeriod === 'mes') {
-    const monthStr = today.slice(0, 7);
-    filtered = filtered.filter(r => r.date.slice(0, 7) === monthStr);
-  }
-
-  if (clientFilter) filtered = filtered.filter(r => r.clientId === clientFilter);
-  return filtered;
-}
-
-function renderReportes() {
-  // Populate client filter
-  const sel     = document.getElementById('filter-client');
-  const cur     = sel.value;
-  const clients = getClients();
-  sel.innerHTML = '<option value="">👤 Todos los clientes</option>' +
-    clients.map(c => `<option value="${c.id}"${c.id === cur ? ' selected' : ''}>${esc(c.name)}</option>`).join('');
-
-  const records       = getFilteredRecords();
-  const totalHours    = records.reduce((s, r) => s + r.hours, 0);
-  const uniqueClients = new Set(records.map(r => r.clientId)).size;
-
-  document.getElementById('metric-horas').innerHTML =
-    `${fmtHours(totalHours)}<span class="metric-unit">hs</span>`;
-  document.getElementById('metric-registros').textContent = records.length;
-  document.getElementById('metric-clientes').textContent  = uniqueClients;
-
-  renderChart(records);
-  renderRecordsList(records);
-  const n = records.length;
-  document.getElementById('records-count-lbl').textContent = `${n} ${n === 1 ? 'registro' : 'registros'}`;
-}
-
-function renderChart(records) {
-  const container = document.getElementById('chart-bars');
-  const byClient  = {};
-  records.forEach(r => {
-    byClient[r.clientName] = (byClient[r.clientName] || 0) + r.hours;
-  });
-  const entries = Object.entries(byClient).sort((a, b) => b[1] - a[1]);
-
-  if (!entries.length) {
-    container.innerHTML = '<div class="chart-empty">Sin registros para el período seleccionado.</div>';
-    return;
-  }
-  const max = entries[0][1];
-  container.innerHTML = entries.map(([name, hours]) => {
-    const pct = max > 0 ? (hours / max * 100) : 0;
-    return `<div class="chart-bar-row">
-      <div class="chart-bar-label" title="${esc(name)}">${esc(name)}</div>
-      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct.toFixed(1)}%"></div></div>
-      <div class="chart-bar-value">${fmtHours(hours)}&thinsp;hs</div>
-    </div>`;
-  }).join('');
-}
-
-function renderRecordsList(records) {
-  const container = document.getElementById('records-list');
-  const sorted    = [...records].sort((a, b) =>
-    b.date !== a.date ? b.date.localeCompare(a.date) : b.createdAt - a.createdAt
-  );
-  if (!sorted.length) {
-    container.innerHTML = '<div class="records-empty">Sin registros para el período seleccionado.</div>';
-    return;
-  }
-  container.innerHTML = sorted.map(r => `
-    <div class="record-item">
-      <div class="record-info">
-        <div class="record-client">${esc(r.clientName)}</div>
-        <div class="record-date">${fmtDate(r.date)}</div>
-        ${r.description ? `<div class="record-desc">${esc(r.description)}</div>` : ''}
-      </div>
-      <div class="record-hours">${fmtHours(r.hours)}<span class="record-hours-unit"> hs</span></div>
-      <button class="record-delete" onclick="deleteRecord('${r.id}')" title="Eliminar">×</button>
-    </div>`).join('');
-}
-
-function deleteRecord(id) {
-  if (!confirm('¿Eliminar este registro?')) return;
-  saveRecords(getRecords().filter(r => r.id !== id));
-  renderReportes();
-  updateBadges();
-}
-
-// ============================================================
-// FOCO / POMODORO
-// ============================================================
-const WORK_SEC  = 25 * 60;
-const BREAK_SEC =  5 * 60;
-
-let pomo = {
-  timeLeft:   WORK_SEC,
-  totalTime:  WORK_SEC,
-  isRunning:  false,
-  isBreak:    false,
-  interval:   null,
-  pendingClientId:   null,
-  pendingClientName: null
-};
-
-function renderFoco() {
-  const sel     = document.getElementById('pomo-client');
-  const cur     = sel.value;
-  const clients = getClients();
-  sel.innerHTML = '<option value="">Sin cliente</option>' +
-    clients.map(c => `<option value="${c.id}"${c.id === cur ? ' selected' : ''}>${esc(c.name)}</option>`).join('');
-
-  const today   = todayStr();
-  const count   = parseInt(localStorage.getItem(KEYS.pomoBase + today) || '0');
-  document.getElementById('pomo-count').textContent = count;
-}
-
-function pomodoroToggle() {
-  if (pomo.isRunning) {
-    clearInterval(pomo.interval);
-    pomo.isRunning = false;
-    document.getElementById('pomo-start-btn').textContent = 'Continuar';
-    return;
-  }
-  pomo.isRunning = true;
-  document.getElementById('pomo-start-btn').textContent = 'Pausar';
-  pomo.interval = setInterval(() => {
-    pomo.timeLeft--;
-    updatePomoDisplay();
-    if (pomo.timeLeft <= 0) {
-      clearInterval(pomo.interval);
-      pomo.isRunning = false;
-      pomodoroComplete();
-    }
-  }, 1000);
-}
-
-function pomodoroReset() {
-  clearInterval(pomo.interval);
-  pomo.isRunning = false;
-  pomo.isBreak   = false;
-  pomo.timeLeft  = WORK_SEC;
-  pomo.totalTime = WORK_SEC;
-  document.getElementById('pomo-start-btn').textContent = 'Iniciar';
-  document.getElementById('pomo-timer').classList.remove('break');
-  document.getElementById('pomo-progress').classList.remove('break');
-  updatePomoDisplay();
-}
-
-function updatePomoDisplay() {
-  const m = Math.floor(pomo.timeLeft / 60).toString().padStart(2, '0');
-  const s = (pomo.timeLeft % 60).toString().padStart(2, '0');
-  document.getElementById('pomo-timer').textContent = `${m}:${s}`;
-  const pct = pomo.totalTime > 0 ? (pomo.timeLeft / pomo.totalTime * 100) : 0;
-  document.getElementById('pomo-progress').style.width = pct.toFixed(1) + '%';
-  document.getElementById('pomo-mode-lbl').textContent = pomo.isBreak
-    ? 'DESCANSO · 5 min'
-    : 'TRABAJO · 25 min';
-}
-
-function pomodoroComplete() {
-  if (pomo.isBreak) {
-    pomodoroReset();
-    return;
-  }
-  // Increment counter
-  const today   = todayStr();
-  const key     = KEYS.pomoBase + today;
-  const newCount = (parseInt(localStorage.getItem(key) || '0')) + 1;
-  localStorage.setItem(key, newCount);
-  document.getElementById('pomo-count').textContent = newCount;
-
-  // Capture selected client
-  const sel                 = document.getElementById('pomo-client');
-  pomo.pendingClientId      = sel.value;
-  pomo.pendingClientName    = sel.value ? sel.options[sel.selectedIndex].text : null;
-
-  // Show modal
-  const clientText = pomo.pendingClientName
-    ? ` para <strong>${esc(pomo.pendingClientName)}</strong>`
-    : '';
-  document.getElementById('pomo-modal-body').innerHTML =
-    `Trabajaste 25 minutos${clientText}. ¿Querés registrar 0,5 hs en el cliente?`;
-  document.getElementById('pomo-modal').classList.add('show');
-}
-
-function pomodoroLogAndContinue() {
-  document.getElementById('pomo-modal').classList.remove('show');
-  if (pomo.pendingClientId) {
-    const client  = getClients().find(c => c.id === pomo.pendingClientId);
-    const records = getRecords();
-    records.push({
-      id:          uid(),
-      clientId:    pomo.pendingClientId,
-      clientName:  client ? client.name : pomo.pendingClientName || 'Desconocido',
-      date:        todayStr(),
-      hours:       0.5,
-      description: 'Sesión Pomodoro (25 min)',
-      createdAt:   Date.now()
-    });
-    saveRecords(records);
-    updateBadges();
-  }
-  startBreak();
-}
-
-function pomodoroSkipAndBreak() {
-  document.getElementById('pomo-modal').classList.remove('show');
-  startBreak();
-}
-
-function startBreak() {
-  pomo.isBreak   = true;
-  pomo.timeLeft  = BREAK_SEC;
-  pomo.totalTime = BREAK_SEC;
-  document.getElementById('pomo-timer').classList.add('break');
-  document.getElementById('pomo-progress').classList.add('break');
-  document.getElementById('pomo-start-btn').textContent = 'Iniciar descanso';
-  updatePomoDisplay();
-}
-
-// ============================================================
-// UTILS
-// ============================================================
-function esc(s) {
-  return String(s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function fmtHours(h) {
-  const r = Math.round(h * 100) / 100;
-  return Number.isInteger(r) ? r.toString() : r.toString();
-}
-
-function fmtDate(d) {
+function formatDate(d) {
   if (!d) return '';
-  const [y, m, day] = d.split('-');
+  const [y,m,day] = d.split('-');
   return `${day}/${m}/${y}`;
 }
 
-function showSuccess(id) {
-  const el = document.getElementById(id);
-  el.style.display = 'block';
-  setTimeout(() => { el.style.display = 'none'; }, 2500);
+function startOfWeek(d) {
+  const dt = new Date(d + 'T00:00:00');
+  const day = dt.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const mon = new Date(dt);
+  mon.setDate(dt.getDate() + diff);
+  return mon.toISOString().slice(0,10);
+}
+function startOfMonth(d) { return d.slice(0,7) + '-01'; }
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function horasText(h) {
+  if (h === 0.25) return '¼';
+  if (h === 0.5)  return '½';
+  if (h === 0.75) return '¾';
+  if (Number.isInteger(h)) return String(h);
+  return Number(h).toFixed(2);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ── State ──────────────────────────────────────────────────────
+let selectedHoras = null;
+let modalSelectedHoras = null;
+let editingId = null;
+let reportPeriod  = 'today';
+let reportCliente = '';   // '' = todos los clientes
+let clientesPeriod = 'all';   // período del tab Clientes
+let reportChart = null;
+
+// ── Pomodoro state ─────────────────────────────────────────────
+let pomodoroState = 'idle';   // 'idle' | 'running' | 'paused'
+let pomodoroMinutes = 25;
+let pomodoroSeconds = 0;
+let pomodoroTimer = null;
+let pomodoroTotalSeconds = 25 * 60;
+let pomodoroSessionCount = 0;
+let pomodoroStartTime = null;      // Date.now() al iniciar/retomar
+let pomodoroRemainingAtStart = 0;  // segundos restantes al iniciar/retomar
+let pomodoroPhase = 'work';        // 'work' | 'break' | 'break-select'
+let pomodoroWorkTotalSeconds = 25 * 60; // duración configurada del bloque de trabajo
+
+// ── Init ───────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const t = today();
+  document.getElementById('globalDate').value = t;
+  document.getElementById('entry-date').value = t;
+  document.getElementById('exp-desde').value = t.slice(0,7) + '-01';
+  document.getElementById('exp-hasta').value = t;
+
+  // Global date sync
+  document.getElementById('globalDate').addEventListener('change', (e) => {
+    document.getElementById('entry-date').value = e.target.value;
+    renderTabRegistrar();
+  });
+  document.getElementById('entry-date').addEventListener('change', () => renderTabRegistrar());
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(tab =>
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab))
+  );
+
+  // Main hora chips
+  document.getElementById('horas-grid').addEventListener('click', (e) => {
+    const chip = e.target.closest('.hora-chip');
+    if (!chip) return;
+    document.querySelectorAll('#horas-grid .hora-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    selectedHoras = parseFloat(chip.dataset.val);
+    document.getElementById('custom-horas').value = '';
+  });
+  document.getElementById('custom-horas').addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    document.querySelectorAll('#horas-grid .hora-chip').forEach(c => c.classList.remove('selected'));
+    selectedHoras = isNaN(val) || val <= 0 ? null : val;
+  });
+
+  // Add entry
+  document.getElementById('btn-agregar-entrada').addEventListener('click', agregarEntrada);
+  document.getElementById('btn-limpiar').addEventListener('click', limpiarFormulario);
+
+  // Color picker
+  document.getElementById('client-color').addEventListener('input', (e) => {
+    document.getElementById('color-preview').style.background = e.target.value;
+  });
+
+  // Add client
+  document.getElementById('btn-add-client').addEventListener('click', agregarCliente);
+  document.getElementById('new-client-name').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') agregarCliente();
+  });
+
+  // Report period filters
+  document.getElementById('report-filters').addEventListener('click', (e) => {
+    const pill = e.target.closest('.filter-pill');
+    if (!pill) return;
+    document.querySelectorAll('#report-filters .filter-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    reportPeriod = pill.dataset.period;
+    renderTabReportes();
+  });
+
+  // Clientes period filters
+  document.getElementById('clientes-filters').addEventListener('click', (e) => {
+    const pill = e.target.closest('.filter-pill');
+    if (!pill) return;
+    document.querySelectorAll('#clientes-filters .filter-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    clientesPeriod = pill.dataset.period;
+    renderTabClientes();
+  });
+
+  // Report client filter
+  document.getElementById('report-cliente-select').addEventListener('change', (e) => {
+    reportCliente = e.target.value;
+    const sel = e.target;
+    sel.classList.toggle('filtered', !!reportCliente);
+    renderTabReportes();
+  });
+
+  // Modal hora chips
+  document.getElementById('modal-horas-grid').addEventListener('click', (e) => {
+    const chip = e.target.closest('.hora-chip');
+    if (!chip) return;
+    document.querySelectorAll('#modal-horas-grid .hora-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    modalSelectedHoras = parseFloat(chip.dataset.val);
+    document.getElementById('modal-custom-horas').value = '';
+  });
+  document.getElementById('modal-custom-horas').addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    document.querySelectorAll('#modal-horas-grid .hora-chip').forEach(c => c.classList.remove('selected'));
+    modalSelectedHoras = isNaN(val) || val <= 0 ? null : val;
+  });
+
+  // Modal buttons
+  document.getElementById('btn-guardar-edicion').addEventListener('click', guardarEdicion);
+  document.getElementById('btn-cancelar-edicion').addEventListener('click', cerrarModal);
+  document.getElementById('edit-modal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('edit-modal')) cerrarModal();
+  });
+
+  // Export
+  document.getElementById('btn-exportar').addEventListener('click', exportarExcel);
+  document.getElementById('btn-exportar-pdf').addEventListener('click', exportarPDF);
+  ['exp-cliente','exp-desde','exp-hasta'].forEach(id => {
+    document.getElementById(id).addEventListener('change', actualizarPreviewExport);
+  });
+
+  // Limpiar historial
+  document.getElementById('btn-preview-limpiar').addEventListener('click', previewLimpiar);
+  document.getElementById('btn-limpiar-historial').addEventListener('click', limpiarHistorial);
+  ['lim-desde','lim-hasta'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => {
+      document.getElementById('delete-preview').classList.remove('visible');
+    });
+  });
+
+  // Brasa: render inicial sin transición, luego habilitarla
+  updateBrasa();
+  setTimeout(() => {
+    const b = document.getElementById('brasa-burned-overlay');
+    const e = document.getElementById('brasa-ember');
+    if (b) b.style.transition = 'width 5s ease';
+    if (e) e.style.transition  = 'left 5s ease, opacity 0.5s';
+    setInterval(updateBrasa, 30000); // actualizar cada 30s
+  }, 300);
+
+  renderAll();
+});
+
+// ── Tab switch ─────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('tab-registrar').style.display = tab === 'registrar' ? '' : 'none';
+  document.getElementById('tab-clientes').style.display  = tab === 'clientes'  ? '' : 'none';
+  document.getElementById('tab-reportes').style.display  = tab === 'reportes'  ? '' : 'none';
+  document.getElementById('tab-foco').style.display      = tab === 'foco'      ? '' : 'none';
+  if (tab === 'reportes') { renderTabReportes(); populateExpClientes(); }
+  if (tab === 'clientes') renderTabClientes();
+  if (tab === 'foco') updatePomodoroDisplay();
+}
+
+// ── Render all ─────────────────────────────────────────────────
+function renderAll() {
+  populateClientSelect();
+  renderTabRegistrar();
+  renderBadges();
+}
+
+function renderBadges() {
+  const registros = STORE.registros();
+  const clientes  = STORE.clientes();
+  const fecha = document.getElementById('entry-date').value || today();
+  const countHoy = registros.filter(r => r.fecha === fecha).length;
+  document.getElementById('badge-hoy').textContent      = countHoy || '';
+  document.getElementById('badge-clientes').textContent = clientes.length || '';
+}
+
+// ── Client selects ─────────────────────────────────────────────
+function clientesOrdenados() {
+  return STORE.clientes().slice().sort((a,b) =>
+    a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
+  );
+}
+
+function populateClientSelect() {
+  const clientes = clientesOrdenados();
+  const sel = document.getElementById('sel-cliente');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Seleccionar cliente —</option>';
+  clientes.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id; o.textContent = c.nombre;
+    sel.appendChild(o);
+  });
+  if (prev) sel.value = prev;
+}
+
+function populateModalClientes(selectedId) {
+  const clientes = clientesOrdenados();
+  const sel = document.getElementById('modal-cliente');
+  sel.innerHTML = '';
+  clientes.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id; o.textContent = c.nombre;
+    sel.appendChild(o);
+  });
+  sel.value = selectedId;
+}
+
+function populateExpClientes() {
+  const clientes = clientesOrdenados();
+  const sel = document.getElementById('exp-cliente');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Todos los clientes</option>';
+  clientes.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id; o.textContent = c.nombre;
+    sel.appendChild(o);
+  });
+  if (prev) sel.value = prev;
+  actualizarPreviewExport();
+}
+
+// ── Registrar tab ──────────────────────────────────────────────
+function agregarEntrada() {
+  const clienteId = document.getElementById('sel-cliente').value;
+  const fecha = document.getElementById('entry-date').value || today();
+  const detalle = document.getElementById('entry-detalle').value.trim();
+  if (!clienteId) { showToast('⚠️ Seleccioná un cliente'); return; }
+  if (!selectedHoras) { showToast('⚠️ Indicá las horas'); return; }
+  if (!detalle) { showToast('⚠️ Describí el trabajo'); return; }
+
+  const registros = STORE.registros();
+  registros.push({ id: uid(), clienteId, fecha, horas: selectedHoras, detalle, ts: Date.now() });
+  STORE.saveRegistros(registros);
+  limpiarFormulario();
+  showToast('✅ Horas registradas');
+  renderAll();
+}
+
+function limpiarFormulario() {
+  document.getElementById('sel-cliente').value = '';
+  document.querySelectorAll('#horas-grid .hora-chip').forEach(c => c.classList.remove('selected'));
+  document.getElementById('custom-horas').value = '';
+  document.getElementById('entry-detalle').value = '';
+  selectedHoras = null;
+}
+
+function renderTabRegistrar() {
+  const fecha = document.getElementById('entry-date').value || today();
+  const clientes = STORE.clientes();
+  const registros = STORE.registros();
+  const clienteMap = Object.fromEntries(clientes.map(c => [c.id, c]));
+
+  const entriesHoy = registros
+    .filter(r => r.fecha === fecha)
+    .sort((a,b) => b.ts - a.ts);
+  const totalHoy = entriesHoy.reduce((s,r) => s + r.horas, 0);
+
+  // Summary bar
+  const summaryWrap = document.getElementById('summary-day-wrap');
+  if (entriesHoy.length > 0) {
+    const perC = {};
+    entriesHoy.forEach(r => { perC[r.clienteId] = (perC[r.clienteId]||0) + r.horas; });
+    let chips = `<div class="summary-bar">
+      <div class="summary-chip">
+        <div class="chip-dot" style="background:var(--accent)"></div>
+        <span>${formatDate(fecha)}</span>
+        <span class="chip-val">&nbsp;${horasText(totalHoy)} hs total</span>
+      </div>`;
+    Object.entries(perC).forEach(([cid, hs]) => {
+      const c = clienteMap[cid]; if (!c) return;
+      chips += `<div class="summary-chip">
+        <div class="chip-dot" style="background:${c.color}"></div>
+        <span>${c.nombre}</span>
+        <span class="chip-val">&nbsp;${horasText(hs)} hs</span>
+      </div>`;
+    });
+    summaryWrap.innerHTML = chips + '</div>';
+  } else {
+    summaryWrap.innerHTML = '';
+  }
+
+  // Entry list
+  const wrap = document.getElementById('entries-hoy-wrap');
+  if (entriesHoy.length === 0) {
+    wrap.innerHTML = `<div class="empty">
+      <div class="icon">⏱️</div>
+      <h3>Sin registros para ${formatDate(fecha)}</h3>
+      <p>Usá el formulario de arriba para registrar el tiempo dedicado a cada cliente.</p>
+    </div>`;
+  } else {
+    wrap.innerHTML = `<div class="card">
+      <div class="section-row">
+        <div class="section-title">Registros del ${formatDate(fecha)}</div>
+        <span class="total-horas-badge">${horasText(totalHoy)} hs</span>
+      </div>
+      ${entriesHoy.map(r => {
+        const c = clienteMap[r.clienteId] || { nombre:'Desconocido', color:'#999' };
+        return `<div class="entry-item">
+          <div class="entry-dot" style="background:${c.color}"></div>
+          <div class="entry-info">
+            <div class="entry-cliente">${c.nombre}</div>
+            <div class="entry-detalle">${r.detalle}</div>
+          </div>
+          <div class="entry-right">
+            <div class="entry-horas">${horasText(r.horas)}<span> hs</span></div>
+            <div class="entry-actions">
+              <button class="entry-btn" onclick="abrirEditModal('${r.id}')" title="Editar">✎</button>
+              <button class="entry-btn" onclick="eliminarEntrada('${r.id}')" title="Eliminar">✕</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+  renderBadges();
+}
+
+function eliminarEntrada(id) {
+  if (!confirm('¿Eliminar este registro?')) return;
+  STORE.saveRegistros(STORE.registros().filter(r => r.id !== id));
+  showToast('🗑 Registro eliminado');
+  renderAll();
+}
+
+// ── Edit modal ─────────────────────────────────────────────────
+function abrirEditModal(id) {
+  const registros = STORE.registros();
+  const r = registros.find(x => x.id === id);
+  if (!r) return;
+
+  editingId = id;
+  modalSelectedHoras = r.horas;
+
+  populateModalClientes(r.clienteId);
+  document.getElementById('modal-fecha').value = r.fecha;
+  document.getElementById('modal-detalle').value = r.detalle;
+  document.getElementById('modal-custom-horas').value = '';
+
+  // Select matching chip or set custom
+  document.querySelectorAll('#modal-horas-grid .hora-chip').forEach(c => {
+    c.classList.toggle('selected', parseFloat(c.dataset.val) === r.horas);
+  });
+  const standardVals = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
+  if (!standardVals.includes(r.horas)) {
+    document.getElementById('modal-custom-horas').value = r.horas;
+  }
+
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function cerrarModal() {
+  document.getElementById('edit-modal').classList.remove('open');
+  editingId = null;
+  modalSelectedHoras = null;
+}
+
+function guardarEdicion() {
+  const clienteId = document.getElementById('modal-cliente').value;
+  const fecha = document.getElementById('modal-fecha').value;
+  const detalle = document.getElementById('modal-detalle').value.trim();
+
+  if (!clienteId) { showToast('⚠️ Seleccioná un cliente'); return; }
+  if (!modalSelectedHoras) { showToast('⚠️ Indicá las horas'); return; }
+  if (!detalle) { showToast('⚠️ Describí el trabajo'); return; }
+
+  const registros = STORE.registros().map(r => {
+    if (r.id !== editingId) return r;
+    return { ...r, clienteId, fecha, horas: modalSelectedHoras, detalle };
+  });
+  STORE.saveRegistros(registros);
+  cerrarModal();
+  showToast('✅ Registro actualizado');
+  renderAll();
+  // If reportes tab is visible, refresh it
+  if (document.getElementById('tab-reportes').style.display !== 'none') renderTabReportes();
+}
+
+// ── Clientes tab ───────────────────────────────────────────────
+const PERIOD_LABELS = { today: 'Hoy', week: 'Esta semana', month: 'Este mes', all: 'Total histórico' };
+
+function renderTabClientes() {
+  const clientes = STORE.clientes();
+  const hoy = today();
+  document.getElementById('total-clientes-badge').textContent = clientes.length + ' clientes';
+
+  // Filter registros by selected period
+  let registros = STORE.registros();
+  if (clientesPeriod === 'today')
+    registros = registros.filter(r => r.fecha === hoy);
+  else if (clientesPeriod === 'week')
+    registros = registros.filter(r => r.fecha >= startOfWeek(hoy) && r.fecha <= hoy);
+  else if (clientesPeriod === 'month')
+    registros = registros.filter(r => r.fecha >= startOfMonth(hoy) && r.fecha <= hoy);
+
+  const horasPorCliente = {};
+  registros.forEach(r => { horasPorCliente[r.clienteId] = (horasPorCliente[r.clienteId]||0) + r.horas; });
+
+  const list = document.getElementById('clientes-list');
+  if (clientes.length === 0) {
+    list.innerHTML = `<div class="empty" style="padding:30px 0">
+      <div class="icon">👥</div>
+      <h3>Sin clientes aún</h3>
+      <p>Agregá tu primer cliente abajo.</p>
+    </div>`;
+  } else {
+    list.innerHTML = clientes.map(c => {
+      const hs = horasPorCliente[c.id] || 0;
+      return `<div class="cliente-row" id="cliente-row-${c.id}">
+        <div class="cliente-color-dot" style="background:${c.color}"></div>
+        <div class="cliente-nombre" id="cliente-nombre-${c.id}">${c.nombre}</div>
+        <span class="cliente-hours-badge">${horasText(hs)} hs</span>
+        <button class="btn-edit-sm" onclick="iniciarRenombrar('${c.id}')">✏️ Renombrar</button>
+        <button class="btn-danger-sm" onclick="eliminarCliente('${c.id}')">Eliminar</button>
+      </div>`;
+    }).join('');
+  }
+
+  const chartCard = document.getElementById('clients-chart-card');
+  const periodLabelEl = document.getElementById('clients-chart-period-label');
+  if (periodLabelEl) periodLabelEl.textContent = PERIOD_LABELS[clientesPeriod] || 'Total histórico';
+
+  const maxHs = Math.max(...clientes.map(c => horasPorCliente[c.id]||0), 0.01);
+  const withHours = clientes.filter(c => (horasPorCliente[c.id]||0) > 0)
+    .sort((a,b) => (horasPorCliente[b.id]||0) - (horasPorCliente[a.id]||0));
+
+  if (withHours.length > 0) {
+    chartCard.style.display = '';
+    document.getElementById('clients-bar-chart').innerHTML = withHours.map(c => {
+      const hs = horasPorCliente[c.id] || 0;
+      const pct = (hs / maxHs * 100).toFixed(1);
+      return `<div class="cliente-bar-row">
+        <div class="cliente-bar-label"><span>${c.nombre}</span><span>${horasText(hs)} hs</span></div>
+        <div class="cliente-bar-track"><div class="cliente-bar-fill" style="width:${pct}%;background:${c.color}"></div></div>
+      </div>`;
+    }).join('');
+  } else {
+    chartCard.style.display = 'none';
+  }
+}
+
+function agregarCliente() {
+  const nombre = document.getElementById('new-client-name').value.trim();
+  const color  = document.getElementById('client-color').value;
+  if (!nombre) { showToast('⚠️ Ingresá el nombre'); return; }
+  const clientes = STORE.clientes();
+  if (clientes.some(c => c.nombre.toLowerCase() === nombre.toLowerCase())) {
+    showToast('⚠️ Ya existe ese cliente'); return;
+  }
+  clientes.push({ id: uid(), nombre, color });
+  STORE.saveClientes(clientes);
+  document.getElementById('new-client-name').value = '';
+  showToast('✅ Cliente agregado');
+  renderAll();
+  renderTabClientes();
+}
+
+function eliminarCliente(id) {
+  const clientes = STORE.clientes();
+  const c = clientes.find(x => x.id === id);
+  if (!c) return;
+  const registros = STORE.registros();
+  const tieneReg = registros.some(r => r.clienteId === id);
+  const msg = tieneReg
+    ? `¿Eliminar a "${c.nombre}"? Sus registros de horas también se borrarán.`
+    : `¿Eliminar al cliente "${c.nombre}"?`;
+  if (!confirm(msg)) return;
+  STORE.saveClientes(clientes.filter(x => x.id !== id));
+  if (tieneReg) STORE.saveRegistros(registros.filter(r => r.clienteId !== id));
+  showToast('🗑 Cliente eliminado');
+  renderAll();
+  renderTabClientes();
+}
+
+function iniciarRenombrar(id) {
+  const clientes = STORE.clientes();
+  const c = clientes.find(x => x.id === id);
+  if (!c) return;
+  const row = document.getElementById(`cliente-row-${id}`);
+  if (!row) return;
+  // Replace row contents with inline form
+  row.innerHTML = `
+    <div class="cliente-color-dot" style="background:${c.color}"></div>
+    <div class="cliente-rename-form">
+      <input class="cliente-rename-input" id="rename-input-${id}"
+             value="${c.nombre.replace(/"/g, '&quot;')}"
+             maxlength="60"
+             onkeydown="if(event.key==='Enter')confirmarRenombrar('${id}');if(event.key==='Escape')cancelarRenombrar('${id}')">
+    </div>
+    <button class="btn-save-sm"   onclick="confirmarRenombrar('${id}')">Guardar</button>
+    <button class="btn-cancel-sm" onclick="cancelarRenombrar('${id}')">Cancelar</button>
+  `;
+  const inp = document.getElementById(`rename-input-${id}`);
+  if (inp) { inp.focus(); inp.select(); }
+}
+
+function confirmarRenombrar(id) {
+  const inp = document.getElementById(`rename-input-${id}`);
+  if (!inp) return;
+  const nuevoNombre = inp.value.trim();
+  if (!nuevoNombre) { showToast('⚠️ El nombre no puede estar vacío'); inp.focus(); return; }
+  const clientes = STORE.clientes();
+  const duplicado = clientes.some(c => c.id !== id && c.nombre.toLowerCase() === nuevoNombre.toLowerCase());
+  if (duplicado) { showToast('⚠️ Ya existe un cliente con ese nombre'); inp.focus(); return; }
+  const idx = clientes.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  clientes[idx].nombre = nuevoNombre;
+  STORE.saveClientes(clientes);
+  showToast(`✅ Cliente renombrado a "${nuevoNombre}"`);
+  renderAll();
+  renderTabClientes();
+}
+
+function cancelarRenombrar(id) {
+  renderTabClientes();
+}
+
+// ── Reportes tab ───────────────────────────────────────────────
+function getFilteredRegistros(period, clienteId) {
+  let registros = STORE.registros();
+  const hoy = today();
+  if (period === 'today') registros = registros.filter(r => r.fecha === hoy);
+  else if (period === 'week')  registros = registros.filter(r => r.fecha >= startOfWeek(hoy) && r.fecha <= hoy);
+  else if (period === 'month') registros = registros.filter(r => r.fecha >= startOfMonth(hoy) && r.fecha <= hoy);
+  if (clienteId) registros = registros.filter(r => r.clienteId === clienteId);
+  return registros;
+}
+
+function populateReportClientes() {
+  const clientes = clientesOrdenados();
+  const sel = document.getElementById('report-cliente-select');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">👤 Todos los clientes</option>';
+  clientes.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.nombre;
+    sel.appendChild(opt);
+  });
+  // Restaurar selección previa si sigue existiendo
+  if (current && clientes.some(c => c.id === current)) sel.value = current;
+  else { sel.value = ''; reportCliente = ''; sel.classList.remove('filtered'); }
+}
+
+function renderTabReportes() {
+  populateReportClientes();
+  const clientes = STORE.clientes();
+  const clienteMap = Object.fromEntries(clientes.map(c => [c.id, c]));
+  const registros = [...getFilteredRegistros(reportPeriod, reportCliente)]
+    .sort((a,b) => b.fecha.localeCompare(a.fecha) || b.ts - a.ts);
+
+  // Nombre del cliente seleccionado para el título del chart
+  const clienteFiltrado = reportCliente ? clienteMap[reportCliente] : null;
+
+  const totalHs = registros.reduce((s,r) => s + r.horas, 0);
+  const clientesActivos = new Set(registros.map(r => r.clienteId)).size;
+  const promedio = registros.length > 0 ? totalHs / registros.length : 0;
+
+  // Tercer stat: si hay filtro por cliente mostrar promedio, si no mostrar clientes activos
+  const tercerStat = clienteFiltrado
+    ? `<div class="stat-val">${horasText(promedio)}<span> hs</span></div><div class="stat-lbl">Promedio/sesión</div>`
+    : `<div class="stat-val">${clientesActivos}</div><div class="stat-lbl">Clientes</div>`;
+
+  // Stats
+  document.getElementById('stat-grid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-val">${horasText(totalHs)}<span> hs</span></div>
+      <div class="stat-lbl">Total horas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">${registros.length}</div>
+      <div class="stat-lbl">Registros</div>
+    </div>
+    <div class="stat-card">${tercerStat}</div>`;
+
+  // Chart — título dinámico
+  const chartCard = document.querySelector('#tab-reportes .card .card-title');
+  if (chartCard) {
+    chartCard.textContent = clienteFiltrado
+      ? `Horas por fecha — ${clienteFiltrado.nombre}`
+      : 'Distribución por Cliente';
+  }
+
+  let labels = [], data = [], colors = [];
+
+  if (clienteFiltrado) {
+    // Vista de un cliente: agrupar por fecha ordenada
+    const perFecha = {};
+    registros.forEach(r => { perFecha[r.fecha] = (perFecha[r.fecha]||0) + r.horas; });
+    const fechas = Object.keys(perFecha).sort();
+    fechas.forEach(f => {
+      labels.push(f.slice(8) + '-' + f.slice(5, 7)); // DD-MM
+      data.push(perFecha[f]);
+      colors.push(clienteFiltrado.color);
+    });
+  } else {
+    // Vista todos: agrupar por cliente
+    const perC = {};
+    registros.forEach(r => { perC[r.clienteId] = (perC[r.clienteId]||0) + r.horas; });
+    Object.entries(perC).sort((a,b) => b[1]-a[1]).forEach(([cid, hs]) => {
+      const c = clienteMap[cid]; if (!c) return;
+      labels.push(c.nombre); data.push(hs); colors.push(c.color);
+    });
+  }
+
+  const chartWrap = document.querySelector('#tab-reportes .chart-wrap');
+  if (reportChart) { try { reportChart.destroy(); } catch(e) {} reportChart = null; }
+  chartWrap.innerHTML = '<canvas id="report-chart"></canvas>';
+
+  if (data.length > 0) {
+    reportChart = new Chart(document.getElementById('report-chart'), {
+      type: 'bar',
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 8, borderSkipped: false }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ` ${horasText(ctx.raw)} hs` } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 11, weight: '600' }, color: '#5a5248' } },
+          y: { grid: { color: '#e8e2d8' }, ticks: { font: { size: 11 }, color: '#9a9086', callback: v => v + ' hs' } }
+        }
+      }
+    });
+  } else {
+    chartWrap.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-3);font-size:13px;">Sin datos para el período</div>`;
+  }
+
+  // Detail list
+  document.getElementById('report-count-badge').textContent = registros.length + ' registros';
+  const listEl = document.getElementById('report-entries-list');
+  if (registros.length === 0) {
+    listEl.innerHTML = `<div class="empty" style="padding:30px 0">
+      <div class="icon">📋</div>
+      <h3>Sin registros en este período</h3>
+      <p>Cambiá el filtro o agregá registros en la pestaña Registrar.</p>
+    </div>`;
+  } else {
+    listEl.innerHTML = registros.map(r => {
+      const c = clienteMap[r.clienteId] || { nombre:'Desconocido', color:'#999' };
+      return `<div class="report-entry">
+        <div style="width:9px;height:9px;border-radius:50%;background:${c.color};flex-shrink:0;margin-top:4px"></div>
+        <div class="report-entry-left">
+          <div style="font-size:13px;font-weight:700;color:var(--text)">${c.nombre}</div>
+          <div class="report-entry-fecha">${formatDate(r.fecha)}</div>
+          <div class="report-entry-detalle">${r.detalle}</div>
+        </div>
+        <div class="report-entry-right">
+          <div class="report-entry-hs">${horasText(r.horas)}<span style="font-size:11px;font-weight:500;color:var(--text-3)"> hs</span></div>
+          <div class="entry-actions">
+            <button class="entry-btn" onclick="abrirEditModal('${r.id}')" title="Editar">✎</button>
+            <button class="entry-btn" onclick="eliminarEntradaYRefresh('${r.id}')" title="Eliminar">✕</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function eliminarEntradaYRefresh(id) {
+  if (!confirm('¿Eliminar este registro?')) return;
+  STORE.saveRegistros(STORE.registros().filter(r => r.id !== id));
+  showToast('🗑 Registro eliminado');
+  renderAll();
+  renderTabReportes();
+}
+
+// ── Export helpers ─────────────────────────────────────────────
+function getExportRegistros() {
+  const clienteId = document.getElementById('exp-cliente').value;
+  const desde = document.getElementById('exp-desde').value;
+  const hasta  = document.getElementById('exp-hasta').value;
+  let registros = STORE.registros();
+  if (clienteId) registros = registros.filter(r => r.clienteId === clienteId);
+  if (desde)     registros = registros.filter(r => r.fecha >= desde);
+  if (hasta)     registros = registros.filter(r => r.fecha <= hasta);
+  return registros.sort((a,b) => a.fecha.localeCompare(b.fecha) || a.ts - b.ts);
+}
+
+function actualizarPreviewExport() {
+  const regs = getExportRegistros();
+  const totalHs = regs.reduce((s,r) => s + r.horas, 0);
+  document.getElementById('exp-preview').textContent =
+    regs.length > 0
+      ? `${regs.length} registros · ${horasText(totalHs)} hs totales`
+      : 'Sin registros para ese filtro';
+}
+
+function getExportMeta() {
+  const clientes   = STORE.clientes();
+  const clienteMap = Object.fromEntries(clientes.map(c => [c.id, c]));
+  const registros  = getExportRegistros();
+  const desde = document.getElementById('exp-desde').value;
+  const hasta  = document.getElementById('exp-hasta').value;
+  const cid    = document.getElementById('exp-cliente').value;
+  const nombreCliente = cid ? (clienteMap[cid]?.nombre || 'cliente') : 'Todos los clientes';
+  return { clientes, clienteMap, registros, desde, hasta, nombreCliente };
+}
+
+// ── Exportar Excel (.xls nativo) ───────────────────────────────
+function exportarExcel() {
+  const { clienteMap, registros, desde, hasta, nombreCliente } = getExportMeta();
+  if (registros.length === 0) { showToast('⚠️ Sin registros para exportar'); return; }
+
+  // Totales por cliente
+  const perC = {};
+  registros.forEach(r => { perC[r.clienteId] = (perC[r.clienteId]||0) + r.horas; });
+  const totalHs = registros.reduce((s,r) => s + r.horas, 0);
+
+  // Filas de detalle
+  const filas = registros.map(r => {
+    const c = clienteMap[r.clienteId] || { nombre:'Desconocido' };
+    return `<tr>
+      <td style="mso-number-format:'DD/MM/YYYY'">${formatDate(r.fecha)}</td>
+      <td>${escXml(c.nombre)}</td>
+      <td style="mso-number-format:'0.00'">${r.horas}</td>
+      <td>${escXml(r.detalle)}</td>
+    </tr>`;
+  }).join('');
+
+  // Filas resumen por cliente
+  const resumen = Object.entries(perC)
+    .sort((a,b) => b[1]-a[1])
+    .map(([cid, hs]) => {
+      const c = clienteMap[cid] || { nombre:'Desconocido' };
+      return `<tr>
+        <td><b>${escXml(c.nombre)}</b></td>
+        <td style="mso-number-format:'0.00'">${hs}</td>
+      </tr>`;
+    }).join('');
+
+  const html = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:x="urn:schemas-microsoft-com:office:excel"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<!--[if gte mso 9]><xml>
+  <x:ExcelWorkbook>
+    <x:ExcelWorksheets>
+      <x:ExcelWorksheet>
+        <x:Name>Detalle</x:Name>
+        <x:WorksheetOptions><x:Selected/></x:WorksheetOptions>
+      </x:ExcelWorksheet>
+      <x:ExcelWorksheet>
+        <x:Name>Resumen</x:Name>
+        <x:WorksheetOptions/>
+      </x:ExcelWorksheet>
+    </x:ExcelWorksheets>
+  </x:ExcelWorkbook>
+</xml><![endif]-->
+<style>
+  body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; }
+  table { border-collapse: collapse; }
+  th { background: #1a1a1a; color: #fff; padding: 6px 10px; font-weight: bold; border: 1px solid #ccc; }
+  td { padding: 5px 10px; border: 1px solid #ddd; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8f5f0; }
+  .title { font-size: 14pt; font-weight: bold; color: #cc5a3a; margin-bottom: 4px; }
+  .sub { font-size: 10pt; color: #666; margin-bottom: 12px; }
+  .total-row td { background: #fdf0ec; font-weight: bold; border-top: 2px solid #cc5a3a; }
+</style>
+</head>
+<body>
+
+<!-- Hoja 1: Detalle -->
+<div class="title">Control de Horas · San Miguel Contadores</div>
+<div class="sub">Cliente: ${escXml(nombreCliente)} &nbsp;|&nbsp; Período: ${formatDate(desde)||'inicio'} — ${formatDate(hasta)||'hoy'} &nbsp;|&nbsp; Total: ${horasText(totalHs)} hs</div>
+<table>
+  <thead>
+    <tr>
+      <th>Fecha</th>
+      <th>Cliente</th>
+      <th>Horas</th>
+      <th>Descripción</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${filas}
+    <tr class="total-row">
+      <td colspan="2"><b>TOTAL</b></td>
+      <td><b>${totalHs}</b></td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Hoja 2: Resumen -->
+<br><br>
+<div class="title">Resumen por Cliente</div>
+<table>
+  <thead>
+    <tr><th>Cliente</th><th>Horas</th></tr>
+  </thead>
+  <tbody>
+    ${resumen}
+    <tr class="total-row">
+      <td><b>TOTAL</b></td>
+      <td><b>${totalHs}</b></td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>`;
+
+  const blob = new Blob(['﻿' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const filename = `horas_${(nombreCliente).replace(/\s+/g,'_')}_${desde||'inicio'}_${hasta||'hoy'}.xls`;
+  triggerDownload(url, filename);
+  showToast(`✅ Excel descargado: ${registros.length} registros`);
+}
+
+// ── Exportar PDF directo (generador nativo sin librerías) ──────
+function exportarPDF() {
+  const { clienteMap, registros, desde, hasta, nombreCliente } = getExportMeta();
+  if (registros.length === 0) { showToast('⚠️ Sin registros para exportar'); return; }
+
+  const totalHs = registros.reduce((s,r) => s + r.horas, 0);
+  const perC = {};
+  registros.forEach(r => { perC[r.clienteId] = (perC[r.clienteId]||0) + r.horas; });
+  const resumen = Object.entries(perC).sort((a,b) => b[1]-a[1]);
+
+  // ── Layout ──────────────────────────────────────────────
+  const PW=595, PH=842, ML=40, MR=40, MT=48, MB=48;
+  const CW = PW - ML - MR; // 515
+
+  const allPageOps = [];
+  let ops = [];
+  let cy = MT;
+
+  // PDF coordinate: origin bottom-left, y increases up
+  function py(topY) { return PH - topY; }
+
+  // Encode string to PDF literal (WinAnsiEncoding / Latin-1)
+  function pdfStr(s) {
+    // Win-1252 extras (U+0080-U+009F range)
+    const w1252 = {8364:128,8218:130,402:131,8222:132,8230:133,8224:134,8225:135,
+      710:136,8240:137,352:138,8249:139,338:140,381:142,8216:145,8217:146,
+      8220:147,8221:148,8226:149,8211:150,8212:151,732:152,8482:153,
+      353:154,8250:155,339:156,382:158,376:159};
+    let r = '';
+    for (let i=0; i<s.length; i++) {
+      const c = s.charCodeAt(i);
+      if      (c===40)  r += '\\(';
+      else if (c===41)  r += '\\)';
+      else if (c===92)  r += '\\\\';
+      else if (c>=32 && c<=126) r += s[i];
+      else if (c>=160 && c<=255) r += '\\' + c.toString(8).padStart(3,'0');
+      else if (w1252[c]) r += '\\' + w1252[c].toString(8).padStart(3,'0');
+      else r += '?';
+    }
+    return '(' + r + ')';
+  }
+
+  function txt(x, ty, s, font, size, rgb) {
+    const [r,g,b] = rgb||[0,0,0];
+    ops.push(`${r} ${g} ${b} rg BT /${font} ${size} Tf ${x} ${py(ty+size*0.76)} Td ${pdfStr(String(s))} Tj ET`);
+  }
+
+  function hline(x1, ty, x2, lw, rgb) {
+    const [r,g,b] = rgb||[0.88,0.86,0.83];
+    ops.push(`${lw||0.4} w ${r} ${g} ${b} RG ${x1} ${py(ty)} m ${x2} ${py(ty)} l S`);
+  }
+
+  function fillRect(x, ty, w, h, rgb) {
+    const [r,g,b] = rgb;
+    ops.push(`${r} ${g} ${b} rg ${x} ${py(ty+h)} ${w} ${h} re f`);
+  }
+
+  function fitStr(s, maxPts, fontSize) {
+    const maxChars = Math.floor(maxPts / (fontSize * 0.52));
+    if (s.length <= maxChars) return s;
+    return s.slice(0, Math.max(1, maxChars-2)) + '..';
+  }
+
+  function finalizePage() {
+    const n = allPageOps.length + 1;
+    hline(ML, PH-MB+6, ML+CW, 0.4, [0.88,0.86,0.83]);
+    txt(ML, PH-MB+10, 'San Miguel Contadores  ·  Control de Horas', 'F1', 7.5, [0.6,0.56,0.52]);
+    txt(ML+CW-36, PH-MB+10, 'Pag. '+n, 'F1', 7.5, [0.6,0.56,0.52]);
+    allPageOps.push([...ops]);
+    ops = []; cy = MT;
+  }
+
+  function checkPage(needed) {
+    if (cy + needed > PH - MB - 10) {
+      finalizePage();
+      fillRect(ML, cy, CW, 2, [0.8,0.35,0.23]);
+      cy += 10;
+    }
+  }
+
+  // ── Página 1: header ────────────────────────────────────
+  txt(ML, cy, 'Control de Horas', 'F2', 20, [0.1,0.1,0.1]);
+  cy += 26;
+  txt(ML, cy, 'San Miguel Contadores', 'F1', 11, [0.35,0.32,0.28]);
+  cy += 15;
+  txt(ML, cy, 'Cliente: '+nombreCliente+'     Periodo: '+(formatDate(desde)||'Inicio')+' — '+(formatDate(hasta)||'Hoy'), 'F1', 9, [0.35,0.32,0.28]);
+  cy += 13;
+  txt(ML, cy, 'Total: '+horasText(totalHs)+' hs     Registros: '+registros.length, 'F2', 9, [0.8,0.35,0.23]);
+  cy += 9;
+  fillRect(ML, cy, CW, 2.5, [0.8,0.35,0.23]);
+  cy += 14;
+
+  // ── Resumen ──────────────────────────────────────────────
+  txt(ML, cy, 'RESUMEN POR CLIENTE', 'F2', 8.5, [0.6,0.56,0.52]);
+  cy += 13;
+  const rW = [CW*0.56, CW*0.22, CW*0.22];
+  fillRect(ML, cy, CW, 15, [0.1,0.1,0.1]);
+  txt(ML+5, cy+4, 'Cliente', 'F2', 8.5, [1,1,1]);
+  txt(ML+rW[0]+5, cy+4, 'Horas', 'F2', 8.5, [1,1,1]);
+  txt(ML+rW[0]+rW[1]+5, cy+4, '% del total', 'F2', 8.5, [1,1,1]);
+  cy += 15;
+  resumen.forEach(([cid,hs],i) => {
+    const c = clienteMap[cid]||{nombre:'?'};
+    const pct = ((hs/totalHs)*100).toFixed(1)+'%';
+    if (i%2===0) fillRect(ML, cy, CW, 13, [0.97,0.94,0.91]);
+    txt(ML+5, cy+3, fitStr(c.nombre, rW[0]-10, 9), 'F1', 9, [0.1,0.1,0.1]);
+    txt(ML+rW[0]+5, cy+3, horasText(hs), 'F2', 9, [0.1,0.1,0.1]);
+    txt(ML+rW[0]+rW[1]+5, cy+3, pct, 'F1', 9, [0.35,0.32,0.28]);
+    hline(ML, cy+13, ML+CW, 0.3);
+    cy += 13;
+  });
+  fillRect(ML, cy, CW, 14, [0.99,0.94,0.93]);
+  txt(ML+5, cy+4, 'TOTAL', 'F2', 9, [0.8,0.35,0.23]);
+  txt(ML+rW[0]+5, cy+4, horasText(totalHs)+' hs', 'F2', 9, [0.8,0.35,0.23]);
+  txt(ML+rW[0]+rW[1]+5, cy+4, '100%', 'F2', 9, [0.8,0.35,0.23]);
+  cy += 20;
+
+  // ── Detalle ──────────────────────────────────────────────
+  checkPage(50);
+  txt(ML, cy, 'DETALLE DE REGISTROS', 'F2', 8.5, [0.6,0.56,0.52]);
+  cy += 13;
+  const dW = [65, 125, 44, CW-234];
+  const drawDetalleHeader = () => {
+    fillRect(ML, cy, CW, 15, [0.1,0.1,0.1]);
+    txt(ML+5,        cy+4, 'Fecha',       'F2', 8.5, [1,1,1]);
+    txt(ML+dW[0]+5,  cy+4, 'Cliente',     'F2', 8.5, [1,1,1]);
+    txt(ML+dW[0]+dW[1]+5, cy+4, 'Horas', 'F2', 8.5, [1,1,1]);
+    txt(ML+dW[0]+dW[1]+dW[2]+5, cy+4, 'Descripcion', 'F2', 8.5, [1,1,1]);
+    cy += 15;
+  };
+  drawDetalleHeader();
+
+  let needsHeader = false;
+  registros.forEach((r,i) => {
+    const c = clienteMap[r.clienteId]||{nombre:'?'};
+    if (cy + 14 > PH - MB - 10) {
+      finalizePage();
+      fillRect(ML, cy, CW, 2, [0.8,0.35,0.23]);
+      cy += 10;
+      drawDetalleHeader();
+    }
+    if (i%2===0) fillRect(ML, cy, CW, 13, [0.97,0.94,0.91]);
+    txt(ML+5, cy+3, formatDate(r.fecha), 'F1', 8.5, [0.1,0.1,0.1]);
+    txt(ML+dW[0]+5, cy+3, fitStr(c.nombre, dW[1]-8, 8.5), 'F1', 8.5, [0.1,0.1,0.1]);
+    txt(ML+dW[0]+dW[1]+5, cy+3, horasText(r.horas), 'F2', 8.5, [0.1,0.1,0.1]);
+    txt(ML+dW[0]+dW[1]+dW[2]+5, cy+3, fitStr(r.detalle, dW[3]-8, 8.5), 'F1', 8.5, [0.35,0.32,0.28]);
+    hline(ML, cy+13, ML+CW, 0.3);
+    cy += 13;
+  });
+  fillRect(ML, cy, CW, 14, [0.99,0.94,0.93]);
+  txt(ML+5, cy+4, 'TOTAL', 'F2', 9, [0.8,0.35,0.23]);
+  txt(ML+dW[0]+dW[1]+5, cy+4, horasText(totalHs)+' hs', 'F2', 9, [0.8,0.35,0.23]);
+  cy += 14;
+
+  finalizePage(); // finaliza última página
+
+  // ── Armar estructura PDF ──────────────────────────────────
+  const nP = allPageOps.length;
+  // IDs fijos: 1=Catalog 2=Pages 3=FontR 4=FontB 5..=streams ..=pages
+  const idStream = i => 5 + i;
+  const idPage   = i => 5 + nP + i;
+  const total    = 4 + nP * 2;
+
+  const defs = {};
+  defs[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+  defs[2] = `<< /Type /Pages /Kids [${Array.from({length:nP},(_,i)=>idPage(i)+' 0 R').join(' ')}] /Count ${nP} >>`;
+  defs[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+  defs[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+  for (let i=0; i<nP; i++) {
+    const s = allPageOps[i].join('\n');
+    defs[idStream(i)] = `<< /Length ${s.length} >>\nstream\n${s}\nendstream`;
+    defs[idPage(i)]   = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents ${idStream(i)} 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>`;
+  }
+
+  let pdf = '%PDF-1.4\n';
+  const off = {};
+  for (let id=1; id<=total; id++) {
+    off[id] = pdf.length;
+    pdf += `${id} 0 obj\n${defs[id]}\nendobj\n`;
+  }
+  const xref = pdf.length;
+  pdf += `xref\n0 ${total+1}\n0000000000 65535 f \n`;
+  for (let id=1; id<=total; id++) pdf += String(off[id]).padStart(10,'0')+' 00000 n \n';
+  pdf += `trailer\n<< /Size ${total+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+
+  // Convertir a bytes (Latin-1)
+  const bytes = new Uint8Array(pdf.length);
+  for (let i=0; i<pdf.length; i++) bytes[i] = pdf.charCodeAt(i) & 0xFF;
+
+  const blob = new Blob([bytes], {type:'application/pdf'});
+  const fname = `horas_${(nombreCliente).replace(/\s+/g,'_')}_${desde||'inicio'}_${hasta||'hoy'}.pdf`;
+  triggerDownload(URL.createObjectURL(blob), fname);
+  showToast('✅ PDF descargado');
+}
+
+// ── Shared utils ───────────────────────────────────────────────
+function escXml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function triggerDownload(url, filename) {
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── Limpiar historial ──────────────────────────────────────────
+function getLimpiarRegistros() {
+  const desde = document.getElementById('lim-desde').value;
+  const hasta  = document.getElementById('lim-hasta').value;
+  if (!desde && !hasta) return [];
+  let registros = STORE.registros();
+  if (desde) registros = registros.filter(r => r.fecha >= desde);
+  if (hasta) registros = registros.filter(r => r.fecha <= hasta);
+  return registros;
+}
+
+function previewLimpiar() {
+  const regs = getLimpiarRegistros();
+  const preview = document.getElementById('delete-preview');
+  if (!document.getElementById('lim-desde').value && !document.getElementById('lim-hasta').value) {
+    showToast('⚠️ Indicá al menos una fecha'); return;
+  }
+  if (regs.length === 0) {
+    preview.textContent = 'Sin registros en ese rango de fechas.';
+    preview.classList.add('visible');
+    return;
+  }
+  const totalHs = regs.reduce((s,r) => s + r.horas, 0);
+  preview.textContent = `Se eliminarán ${regs.length} registro${regs.length>1?'s':''} · ${horasText(totalHs)} hs en total.`;
+  preview.classList.add('visible');
+}
+
+function limpiarHistorial() {
+  const desde = document.getElementById('lim-desde').value;
+  const hasta  = document.getElementById('lim-hasta').value;
+  if (!desde && !hasta) { showToast('⚠️ Indicá al menos una fecha'); return; }
+
+  const regs = getLimpiarRegistros();
+  if (regs.length === 0) { showToast('⚠️ Sin registros en ese rango'); return; }
+
+  const totalHs = regs.reduce((s,r) => s + r.horas, 0);
+  const msg = `¿Confirmar eliminación de ${regs.length} registro${regs.length>1?'s':''} (${horasText(totalHs)} hs)?\n\nEsta acción es irreversible.`;
+  if (!confirm(msg)) return;
+
+  const idsEliminar = new Set(regs.map(r => r.id));
+  STORE.saveRegistros(STORE.registros().filter(r => !idsEliminar.has(r.id)));
+
+  document.getElementById('lim-desde').value = '';
+  document.getElementById('lim-hasta').value = '';
+  document.getElementById('delete-preview').classList.remove('visible');
+
+  showToast(`🗑 ${regs.length} registros eliminados`);
+  renderAll();
+  renderTabReportes();
+}
+
+// ── Brasa (progreso del día 9-18h) ─────────────────────────────
+function updateBrasa() {
+  const now  = new Date();
+  const mins = (now.getHours() - 9) * 60 + now.getMinutes();
+  const WORK = 540; // 9 horas × 60 min
+  const pct  = Math.max(0, Math.min(100, mins / WORK * 100));
+  const active = mins >= 0 && mins < WORK;
+
+  const burnedEl = document.getElementById('brasa-burned-overlay');
+  const emberEl  = document.getElementById('brasa-ember');
+  const timeEl   = document.getElementById('brasa-time');
+  const widget   = document.getElementById('brasa-widget');
+  if (!burnedEl) return;
+
+  burnedEl.style.width   = pct + '%';
+  if (emberEl) {
+    emberEl.style.left    = pct + '%';
+    emberEl.style.opacity = active ? '1' : '0';
+  }
+
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  if (timeEl) timeEl.textContent = hh + ':' + mm;
+
+  if (widget) {
+    const left = Math.max(0, WORK - mins);
+    const hl = Math.floor(left / 60), ml = left % 60;
+    widget.title = active
+      ? `${hl}h ${ml}m restantes (9:00–18:00)`
+      : mins < 0 ? 'Jornada aún no comenzó' : 'Jornada laboral finalizada';
+  }
+}
+
+// ── Pomodoro / Foco ────────────────────────────────────────────
+function pad(n) { return String(n).padStart(2,'0'); }
+
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function notifyPomodoroComplete(isLong) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    try {
+      const body = isLong
+        ? '¡Completaste 4 pomodoros! Elegí cuánto tiempo de descanso querés.'
+        : 'Tomá 5 minutos de descanso antes del próximo bloque.';
+      new Notification('⏱ ¡Pomodoro completado!', {
+        body,
+        tag: 'pomodoro-complete',
+        requireInteraction: false
+      });
+    } catch(e) {}
+  }
+}
+
+function notifyBreakComplete() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    try {
+      new Notification('☕ ¡Descanso terminado!', {
+        body: 'Es hora de retomar el foco. ¡A trabajar!',
+        tag: 'pomodoro-break-end',
+        requireInteraction: false
+      });
+    } catch(e) {}
+  }
+}
+
+function playAlarm() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const seq = [880, 1100, 880, 1320];
+    const CYCLES = 3, NOTE = 0.32, GAP = 0.08, CYCLE_GAP = 0.5;
+    for (let c = 0; c < CYCLES; c++) {
+      seq.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq; osc.type = 'sine';
+        const t0 = ctx.currentTime + c*(seq.length*(NOTE+GAP)+CYCLE_GAP) + i*(NOTE+GAP);
+        gain.gain.setValueAtTime(0,t0);
+        gain.gain.linearRampToValueAtTime(0.45, t0+0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0+NOTE);
+        osc.start(t0); osc.stop(t0+NOTE+0.02);
+      });
+    }
+  } catch(e) {}
+}
+
+function updatePomodoroDisplay() {
+  const CIRC = 534; // 2π × 85
+  const remaining = pomodoroMinutes * 60 + pomodoroSeconds;
+
+  const arcEl        = document.getElementById('timer-arc');
+  const textEl       = document.getElementById('timer-text');
+  const dotTspan     = document.getElementById('timer-dot-tspan');
+  const statusEl     = document.getElementById('timer-status');
+  const btnEl        = document.getElementById('focus-btn');
+  const stopEl       = document.getElementById('focus-stop-btn');
+  const durWrap      = document.getElementById('focus-dur-wrap');
+  const durVal       = document.getElementById('focus-dur-val');
+  const durDisp      = document.getElementById('foco-dur-display');
+  const descEl       = document.getElementById('foco-session-desc');
+  const breakSelEl   = document.getElementById('foco-break-select');
+  const focoBtnsEl   = document.getElementById('foco-btns-wrap');
+
+  if (!arcEl) return;
+
+  const isBreak       = pomodoroPhase === 'break';
+  const isBreakSelect = pomodoroPhase === 'break-select';
+
+  // ── Color del arco ─────────────────────────────────────────
+  arcEl.style.stroke = isBreak ? '#16a34a' : 'var(--accent, #cc5a3a)';
+
+  // ── Arco animado ───────────────────────────────────────────
+  if (pomodoroState === 'idle' && !isBreakSelect) {
+    arcEl.style.transition = 'none';
+    arcEl.style.strokeDashoffset = '0';
+  } else if (isBreakSelect) {
+    arcEl.style.transition = 'none';
+    arcEl.style.strokeDashoffset = String(CIRC); // arco vacío durante selección
+  } else {
+    const dashOffset = pomodoroTotalSeconds > 0
+      ? ((pomodoroTotalSeconds - remaining) / pomodoroTotalSeconds) * CIRC
+      : 0;
+    arcEl.style.transition = 'stroke-dashoffset 0.9s linear';
+    arcEl.style.strokeDashoffset = String(dashOffset);
+  }
+
+  // ── Tiempo central ─────────────────────────────────────────
+  if (textEl) {
+    if (isBreakSelect) {
+      textEl.textContent = '🎉';
+    } else if (pomodoroState === 'idle') {
+      textEl.textContent = pad(pomodoroMinutes) + ':00';
+    } else {
+      textEl.textContent = pad(pomodoroMinutes) + ':' + pad(pomodoroSeconds);
+    }
+  }
+
+  // ── Estado bajo el reloj ───────────────────────────────────
+  if (statusEl && dotTspan) {
+    if (isBreakSelect) {
+      dotTspan.textContent = '';
+      statusEl.textContent = '4 POMODOROS ✓';
+    } else if (isBreak && pomodoroState === 'running') {
+      dotTspan.textContent = '● ';
+      statusEl.textContent = 'DESCANSANDO';
+    } else if (isBreak && pomodoroState === 'paused') {
+      dotTspan.textContent = '● ';
+      statusEl.textContent = 'PAUSA PAUSADA';
+    } else if (pomodoroState === 'idle') {
+      dotTspan.textContent = '';
+      statusEl.textContent = 'EN ESPERA';
+    } else if (pomodoroState === 'running') {
+      dotTspan.textContent = '● ';
+      statusEl.textContent = 'BLOQUE ACTIVO';
+    } else {
+      dotTspan.textContent = '● ';
+      statusEl.textContent = 'EN PAUSA';
+    }
+  }
+
+  // ── Duración ───────────────────────────────────────────────
+  const workMins = Math.round(pomodoroWorkTotalSeconds / 60);
+  if (durVal)  durVal.textContent  = workMins + ' min';
+  if (durDisp) durDisp.textContent = workMins + ' minutos';
+
+  // ── Panel de selección de descanso largo ───────────────────
+  if (breakSelEl) breakSelEl.style.display = isBreakSelect ? 'flex' : 'none';
+  if (focoBtnsEl) focoBtnsEl.style.display = isBreakSelect ? 'none' : '';
+
+  // ── Botones trabajo/descanso ────────────────────────────────
+  if (btnEl && !isBreakSelect) {
+    if (isBreak) {
+      btnEl.textContent = pomodoroState === 'idle'    ? '▶ Iniciar descanso' :
+                          pomodoroState === 'running' ? '⏸ Pausar descanso' : '▶ Continuar descanso';
+    } else {
+      btnEl.textContent = pomodoroState === 'idle'    ? 'Empezar' :
+                          pomodoroState === 'running' ? '⏸ Pausar' : '▶ Continuar';
+    }
+  }
+  if (stopEl)  stopEl.style.display  = (pomodoroState === 'idle' && !isBreak) ? 'none' : '';
+  if (durWrap) durWrap.style.display = (pomodoroState === 'idle' && !isBreak && !isBreakSelect) ? '' : 'none';
+
+  // ── Descripción ────────────────────────────────────────────
+  if (descEl) {
+    if (isBreakSelect) {
+      descEl.textContent = '¡Completaste 4 pomodoros! Elegí cuánto tiempo de descanso necesitás.';
+    } else if (isBreak) {
+      descEl.textContent = pomodoroState === 'running'
+        ? 'Aprovechá para estirarte, tomar agua o despejar la mente.'
+        : 'Descanso en pausa. Retomá cuando quieras.';
+    } else {
+      descEl.textContent =
+        pomodoroState === 'running' ? 'Mantené el foco. Evitá interrupciones hasta que suene la alarma.' :
+        pomodoroState === 'paused'  ? 'En pausa. Retomá cuando estés listo para continuar.' :
+        'Trabajá sin interrupciones hasta que el reloj llegue a cero. Al terminar, descansá 5 minutos antes del próximo bloque.';
+    }
+  }
+
+  // ── Dots de pomodoro ───────────────────────────────────────
+  updatePomodoroDots();
+}
+
+function resetPomodoroDots() {
+  if (pomodoroState === 'running') { showToast('⚠️ Pausá el temporizador antes de reiniciar'); return; }
+  // Detener y resetear completamente
+  clearInterval(pomodoroTimer);
+  pomodoroTimer = null;
+  pomodoroState = 'idle';
+  pomodoroPhase = 'work';
+  pomodoroTotalSeconds = pomodoroWorkTotalSeconds;
+  pomodoroMinutes = Math.round(pomodoroWorkTotalSeconds / 60);
+  pomodoroSeconds = 0;
+  pomodoroSessionCount = 0;
+  updatePomodoroDisplay();
+  showToast('↺ Sesión de pomodoros reiniciada');
+}
+
+function updatePomodoroDots() {
+  // Los 8 dots mapean el ciclo completo:
+  // índices pares (0,2,4,6) → bloques de trabajo
+  // índices impares (1,3,5) → descanso corto
+  // índice 7 → descanso largo
+  const isBreakSelect = pomodoroPhase === 'break-select';
+  const isBreak       = pomodoroPhase === 'break';
+  const cycleWorksDone = pomodoroSessionCount % 4; // 0..3
+
+  // Dot activo y cuántos ya están completados
+  let activeDot     = -1;
+  let completedUpTo = 0; // todos los índices < completedUpTo están en 'done'
+
+  if (isBreakSelect) {
+    // 4 bloques terminados, eligiendo descanso largo → dots 0..6 done, dot 7 activo
+    completedUpTo = 7;
+    activeDot     = 7;
+  } else if (isBreak) {
+    // Determinar cuántos trabajos terminamos en este ciclo
+    const worksDone = cycleWorksDone === 0 ? 4 : cycleWorksDone;
+    completedUpTo = worksDone * 2 - 1; // el dot de trabajo ya está done
+    activeDot     = worksDone * 2 - 1; // el dot de descanso es el activo
+  } else {
+    // Fase trabajo
+    completedUpTo = cycleWorksDone * 2;
+    activeDot     = pomodoroState !== 'idle' ? cycleWorksDone * 2 : -1;
+  }
+
+  // Actualizar label
+  const numEl = document.getElementById('foco-pomo-num');
+  if (numEl) numEl.textContent = isBreakSelect ? 4 : cycleWorksDone + 1;
+
+  const dots = document.querySelectorAll('.foco-pomo-dot');
+  dots.forEach((dot, i) => {
+    dot.classList.remove('done', 'active');
+    if (i < completedUpTo) {
+      dot.classList.add('done');
+    } else if (i === activeDot && (pomodoroState !== 'idle' || isBreakSelect)) {
+      dot.classList.add('active');
+    }
+  });
+}
+
+function startPomodoroTick() {
+  // Guardar referencia al reloj real en el momento de inicio/reanudación
+  pomodoroStartTime = Date.now();
+  pomodoroRemainingAtStart = pomodoroMinutes * 60 + pomodoroSeconds;
+
+  pomodoroTimer = setInterval(() => {
+    if (pomodoroState !== 'running') return;
+
+    // Calcular restante usando el reloj del sistema (no conteo de ticks)
+    const elapsed = Math.floor((Date.now() - pomodoroStartTime) / 1000);
+    const remaining = pomodoroRemainingAtStart - elapsed;
+
+    if (remaining <= 0) {
+      clearInterval(pomodoroTimer);
+      pomodoroTimer = null;
+      playAlarm();
+
+      if (pomodoroPhase === 'break') {
+        // ── Descanso terminado → volver a trabajo ─────────────
+        pomodoroPhase = 'work';
+        pomodoroState = 'idle';
+        pomodoroTotalSeconds = pomodoroWorkTotalSeconds;
+        pomodoroMinutes = Math.round(pomodoroWorkTotalSeconds / 60);
+        pomodoroSeconds = 0;
+        notifyBreakComplete();
+        updatePomodoroDisplay();
+        showToast('☕ ¡Descanso terminado! Empezá el siguiente bloque.');
+      } else {
+        // ── Bloque de trabajo terminado ───────────────────────
+        pomodoroSessionCount++;
+        const cyclePos = pomodoroSessionCount % 4; // 0 = recién completamos el 4to
+
+        if (cyclePos === 0) {
+          // 4to pomodoro → selección de descanso largo
+          pomodoroPhase = 'break-select';
+          pomodoroState = 'idle';
+          pomodoroMinutes = 0;
+          pomodoroSeconds = 0;
+          notifyPomodoroComplete(true);
+          updatePomodoroDisplay();
+          showToast('🎉 ¡4 pomodoros! Elegí tu descanso largo.');
+        } else {
+          // 1ro, 2do o 3ro → descanso automático de 5 min
+          notifyPomodoroComplete(false);
+          updatePomodoroDisplay();
+          showToast('✅ ¡Pomodoro completado! Descanso de 5 minutos.');
+          startBreak(5);
+        }
+      }
+      return;
+    }
+
+    pomodoroMinutes = Math.floor(remaining / 60);
+    pomodoroSeconds = remaining % 60;
+    updatePomodoroDisplay();
+  }, 500); // cada 500ms para recuperarse rápido al volver la pantalla
+}
+
+function startBreak(minutes) {
+  pomodoroPhase = 'break';
+  pomodoroState = 'running';
+  pomodoroTotalSeconds = minutes * 60;
+  pomodoroMinutes = minutes;
+  pomodoroSeconds = 0;
+  updatePomodoroDisplay();
+  startPomodoroTick();
+}
+
+function toggleFocus() {
+  if (pomodoroPhase === 'break-select') return; // no toggle mientras se elige descanso
+  if (pomodoroState === 'idle') {
+    if (pomodoroPhase === 'work') {
+      requestNotificationPermission();
+      pomodoroWorkTotalSeconds = pomodoroMinutes * 60;
+      pomodoroTotalSeconds = pomodoroWorkTotalSeconds;
+      pomodoroSeconds = 0;
+    }
+    pomodoroState = 'running';
+    startPomodoroTick();
+  } else if (pomodoroState === 'running') {
+    pomodoroState = 'paused';
+    clearInterval(pomodoroTimer);
+    pomodoroTimer = null;
+  } else if (pomodoroState === 'paused') {
+    pomodoroState = 'running';
+    startPomodoroTick();
+  }
+  updatePomodoroDisplay();
+}
+
+function stopFocus() {
+  clearInterval(pomodoroTimer);
+  pomodoroTimer = null;
+  pomodoroState = 'idle';
+  pomodoroPhase = 'work';
+  pomodoroTotalSeconds = pomodoroWorkTotalSeconds;
+  pomodoroMinutes = Math.round(pomodoroWorkTotalSeconds / 60);
+  pomodoroSeconds = 0;
+  updatePomodoroDisplay();
+}
+
+function adjustDuration(delta) {
+  if (pomodoroState !== 'idle' || pomodoroPhase !== 'work') return;
+  pomodoroMinutes = Math.max(1, Math.min(60, pomodoroMinutes + delta));
+  pomodoroWorkTotalSeconds = pomodoroMinutes * 60;
+  updatePomodoroDisplay();
+}
+
+// ── Backup / Restore ───────────────────────────────────────────
+function backupData() {
+  const payload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    clientes: STORE.clientes(),
+    registros: STORE.registros()
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const fecha = today().replace(/-/g, '');
+  a.href     = url;
+  a.download = `control-horas-backup-${fecha}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ Backup descargado correctamente');
+}
+
+function restoreData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById('restore-status');
+  statusEl.textContent = 'Leyendo archivo…';
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+
+      // Validar estructura mínima
+      if (!Array.isArray(data.clientes) || !Array.isArray(data.registros)) {
+        statusEl.style.color = '#e11d48';
+        statusEl.textContent = '❌ Archivo inválido: no tiene el formato esperado.';
+        return;
+      }
+
+      const nClientes  = data.clientes.length;
+      const nRegistros = data.registros.length;
+      const exportDate = data.exportedAt
+        ? new Date(data.exportedAt).toLocaleDateString('es-AR') : 'desconocida';
+
+      const ok = confirm(
+        `¿Restaurar backup del ${exportDate}?\n\n` +
+        `• ${nClientes} cliente${nClientes !== 1 ? 's' : ''}\n` +
+        `• ${nRegistros} registro${nRegistros !== 1 ? 's' : ''}\n\n` +
+        `⚠️ Esto reemplazará todos los datos actuales.`
+      );
+
+      if (!ok) {
+        statusEl.textContent = '';
+        event.target.value = '';
+        return;
+      }
+
+      STORE.saveClientes(data.clientes);
+      STORE.saveRegistros(data.registros);
+      renderAll();
+      renderTabReportes();
+      populateExpClientes();
+
+      statusEl.style.color = '#16a34a';
+      statusEl.textContent =
+        `✅ Restaurado: ${nClientes} cliente${nClientes !== 1 ? 's' : ''} y ${nRegistros} registro${nRegistros !== 1 ? 's' : ''}.`;
+      showToast('✅ Backup restaurado correctamente');
+    } catch (err) {
+      statusEl.style.color = '#e11d48';
+      statusEl.textContent = '❌ Error al leer el archivo. Verificá que sea un backup válido.';
+    }
+    // Limpiar input para permitir subir el mismo archivo de nuevo si hace falta
+    event.target.value = '';
+  };
+  reader.readAsText(file);
 }
 </script>
-
 </body>
 </html>
