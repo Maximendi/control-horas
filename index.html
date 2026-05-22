@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control Horas · San Miguel Contadores</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f0f0ee;
+      color: #111;
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* ============ LOGIN ============ */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-card {
+      background: #f5f5f3;
+      border: 0.5px solid #ddd;
+      border-radius: 14px;
+      padding: 40px 48px;
+      width: 360px;
+      text-align: center;
+    }
+    .login-logo {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 10px;
+    }
+    .login-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #111;
+      margin-bottom: 6px;
+    }
+    .login-sub {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 28px;
+    }
+    .login-card input[type="password"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 0.5px solid #ddd;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 15px;
+      outline: none;
+      margin-bottom: 12px;
+      color: #111;
+      font-family: system-ui, sans-serif;
+    }
+    .login-card input[type="password"]:focus { border-color: #C1440E; }
+    .btn-login {
+      width: 100%;
+      padding: 10px;
+      background: #C1440E;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-login:hover { background: #A33A0C; }
+    .login-error {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #C1440E;
+      min-height: 18px;
+    }
+
+    /* ============ APP ============ */
+    #app { display: none; flex-direction: column; min-height: 100vh; }
+
+    .app-header {
+      background: #f5f5f3;
+      border-bottom: 0.5px solid #ddd;
+      padding: 13px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .app-header-brand {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 2px;
+    }
+    .app-header-title {
+      font-size: 19px;
+      font-weight: 600;
+      color: #111;
+    }
+    .app-header-title em { color: #C1440E; font-style: italic; }
+    .app-header-date input[type="date"] {
+      border: 0.5px solid #ddd;
+      border-radius: 8px;
+      padding: 7px 11px;
+      font-size: 13px;
+      background: #fff;
+      color: #111;
+      outline: none;
+      cursor: pointer;
+      font-family: system-ui, sans-serif;
+    }
+    .app-header-date input[type="date"]:focus { border-color: #C1440E; }
+
+    /* Tabs */
+    .tab-nav {
+      display: flex;
+      gap: 2px;
+      padding: 10px 24px 0;
+      background: #f5f5f3;
+      border-bottom: 0.5px solid #ddd;
+    }
+    .tab-btn {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #555;
+      background: transparent;
+      border: none;
+      border-bottom: 2.5px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: -0.5px;
+      transition: color 0.12s;
+    }
+    .tab-btn:hover { color: #111; }
+    .tab-btn.active { color: #C1440E; border-bottom-color: #C1440E; }
+    .tab-badge {
+      background: #ddd;
+      color: #555;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 10px;
+      padding: 1px 7px;
+      min-width: 22px;
+      text-align: center;
+    }
+    .tab-btn.active .tab-badge { background: #C1440E; color: #fff; }
+
+    .tab-content { padding: 24px; flex: 1; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ============ FORMS ============ */
+    .form-card {
+      background: #f5f5f3;
+      border: 0.5px solid #ddd;
+      border-radius: 10px;
+      padding: 24px;
+      max-width: 520px;
+    }
+    .form-card h2 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #111;
+      margin-bottom: 20px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+      padding: 9px 12px;
+      border: 0.5px solid #ddd;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 14px;
+      color: #111;
+      outline: none;
+      font-family: system-ui, sans-serif;
+      width: 100%;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #C1440E; }
+    textarea { resize: vertical; min-height: 76px; }
+
+    .btn-primary {
+      background: #C1440E;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 22px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .btn-primary:hover { background: #A33A0C; }
+    .btn-secondary {
+      background: #fff;
+      color: #111;
+      border: 0.5px solid #ddd;
+      border-radius: 8px;
+      padding: 9px 22px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { background: #f0f0ee; }
+    .btn-danger {
+      background: transparent;
+      color: #C1440E;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .btn-danger:hover { background: #fef0eb; }
+    .success-msg {
+      font-size: 13px;
+      color: #27500A;
+      background: #EAF3DE;
+      border: 0.5px solid #97C459;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* ============ CLIENTES ============ */
+    .clients-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 20px;
+      align-items: start;
+      max-width: 900px;
+    }
+    .client-list-card {
+      background: #f5f5f3;
+      border: 0.5px solid #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .client-list-header {
+      padding: 14px 20px;
+      border-bottom: 0.5px solid #ddd;
+      font-size: 14px;
+      font-weight: 600;
+      color: #111;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .client-count-lbl { font-size: 12px; color: #888; font-weight: 400; }
+    .client-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      border-bottom: 0.5px solid #eee;
+    }
+    .client-item:last-child { border-bottom: none; }
+    .client-name { font-size: 14px; color: #111; }
+    .client-empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: #888;
+      font-size: 13px;
+    }
+
+    /* ============ REPORTES ============ */
+    .report-filters {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .period-btns { display: flex; gap: 4px; }
+    .period-btn {
+      padding: 6px 15px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 0.5px solid #ddd;
+      border-radius: 20px;
+      background: #fff;
+      color: #555;
+      cursor: pointer;
+    }
+    .period-btn.active { background: #111; color: #fff; border-color: #111; }
+    .client-filter select { padding: 6px 12px; font-size: 13px; }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+      max-width: 700px;
+    }
+    .metric-card {
+      background: #f5f5f3;
+      border: 0.5px solid #ddd;
+      border-radius: 10px;
+      padding: 20px 24px;
+      text-align: center;
+    }
+    .metric-value {
+      font-size: 34px;
+      font-weight: 600;
+      color: #111;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 3px;
+    }
+    .metric-unit { font-size: 14px; font-weight: 400; color: #888; }
+    .metric-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+    }
+
+    /* Chart */
+    .chart-card {
+      background: #f5f5f3;
+      border: 0.5px solid #ddd;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      max-width: 900px;
+    }
+    .chart-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 16px;
+    }
+    .chart-bars { display: flex; flex-direction: column; gap: 10px; }
+    .chart-bar-row {
+      display: grid;
+      grid-template-columns: 180px 1fr 56px;
+      align-items: center;
+      gap: 12px;
+    }
+    .chart-bar-label {
+      font-size: 13px;
+      color: #111;
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .chart-bar-track {
+      background: #e5e5e3;
+      border-radius: 5px;
+      height: 28px;
+      overflow: hidden;
+    }
+    .chart-bar-fill {
+      height: 100%;
+      background: #C1440E;
+      border-radius: 5px;
+      transition: width 0.35s ease;
+    }
+    .chart-bar-value { font-size: 13px; font-weight: 600; color: #555; }
+    .chart-empty {
+      text-align: center;
+      color: #888;
+      font-size: 13px;
+      padding: 28px 0;
+    }
+
+    /* Records list */
+    .records-card {
+      background: #f5f5f3;
+      border: 0.5px solid #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      max-width: 900px;
+    }
+    .records-header {
+      padding: 14px 20px;
+      border-bottom: 0.5px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .records-title { font-size: 14px; font-weight: 600; color: #111; }
+    .records-count { font-size: 13px; font-weight: 600; color: #C1440E; }
+    .record-item {
+      display: grid;
+      grid-template-columns: 1fr 72px 32px;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 20px;
+      border-bottom: 0.5px solid #eee;
+    }
+    .record-item:last-child { border-bottom: none; }
+    .record-info { display: flex; flex-direction: column; gap: 2px; }
+    .record-client { font-size: 14px; font-weight: 600; color: #111; }
+    .record-date { font-size: 12px; color: #888; }
+    .record-desc { font-size: 13px; color: #555; margin-top: 2px; }
+    .record-hours { font-size: 18px; font-weight: 600; color: #111; text-align: right; }
+    .record-hours-unit { font-size: 12px; color: #888; font-weight: 400; }
+    .record-delete {
+      background: transparent;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 3px 6px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .record-delete:hover { color: #C1440E; background: #fef0eb; }
+    .records-empty {
+      padding: 48px 20px;
+      text-align: center;
+      color: #888;
+      font-size: 13px;
+    }
+
+    /* ============ FOCO ============ */
+    .foco-layout { max-width: 420px; margin: 0 auto; }
+    .pomodoro-card {
+      background: #f5f5f3;
+      border: 0.5px solid #ddd;
+      border-radius: 14px;
+      padding: 40px 32px;
+      text-align: center;
+    }
+    .pomo-mode-lbl {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 10px;
+    }
+    .pomo-timer {
+      font-size: 76px;
+      font-weight: 600;
+      color: #111;
+      letter-spacing: -3px;
+      line-height: 1;
+      margin-bottom: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+    .pomo-timer.break { color: #27500A; }
+    .pomo-progress {
+      height: 4px;
+      background: #e5e5e3;
+      border-radius: 2px;
+      margin: 16px 0 28px;
+      overflow: hidden;
+    }
+    .pomo-progress-fill {
+      height: 100%;
+      background: #C1440E;
+      border-radius: 2px;
+      transition: width 1s linear;
+    }
+    .pomo-progress-fill.break { background: #97C459; }
+    .pomo-client { margin-bottom: 24px; }
+    .pomo-client label { font-size: 12px; color: #888; display: block; margin-bottom: 6px; }
+    .pomo-client select { width: 100%; }
+    .pomo-btns { display: flex; gap: 10px; justify-content: center; }
+    .pomo-count { margin-top: 20px; font-size: 13px; color: #888; }
+    .pomo-count strong { color: #111; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 32px;
+      max-width: 380px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    .modal-icon { font-size: 42px; margin-bottom: 12px; }
+    .modal-title { font-size: 18px; font-weight: 600; color: #111; margin-bottom: 8px; }
+    .modal-body { font-size: 14px; color: #555; margin-bottom: 22px; line-height: 1.55; }
+    .modal-btns { display: flex; gap: 10px; justify-content: center; }
+
+    /* Footer */
+    .app-footer {
+      text-align: center;
+      padding: 14px;
+      font-size: 11px;
+      color: #bbb;
+      border-top: 0.5px solid #eee;
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">San Miguel Contadores</div>
+    <div class="login-title">Control Horas</div>
+    <div class="login-sub">Registro de horas por cliente</div>
+    <input type="password" id="pwd-input" placeholder="Contraseña"
+      onkeydown="if(event.key==='Enter') checkPwd()">
+    <button class="btn-login" onclick="checkPwd()">Ingresar</button>
+    <div class="login-error" id="pwd-error"></div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <div class="app-header">
+    <div>
+      <div class="app-header-brand">Control de Horas · San Miguel Contadores</div>
+      <div class="app-header-title">Horas por <em>Cliente</em></div>
+    </div>
+    <div class="app-header-date">
+      <input type="date" id="header-date" onchange="onHeaderDateChange()">
+    </div>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('registrar')" id="tab-btn-registrar">
+      ✏️ Registrar <span class="tab-badge" id="badge-registrar">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('clientes')" id="tab-btn-clientes">
+      👤 Clientes <span class="tab-badge" id="badge-clientes">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('reportes')" id="tab-btn-reportes">
+      📊 Reportes
+    </button>
+    <button class="tab-btn" onclick="switchTab('foco')" id="tab-btn-foco">
+      ⏱ Foco
+    </button>
+  </div>
+
+  <div class="tab-content">
+
+    <!-- REGISTRAR -->
+    <div class="tab-panel active" id="tab-registrar">
+      <div class="form-card">
+        <h2>Nuevo registro de horas</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cliente</label>
+            <select id="reg-client"></select>
+          </div>
+          <div class="form-group">
+            <label>Fecha</label>
+            <input type="date" id="reg-date">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Horas trabajadas</label>
+            <input type="number" id="reg-hours" min="0.25" max="24" step="0.25" placeholder="ej: 2.5">
+          </div>
+          <div class="form-group"></div>
+        </div>
+        <div class="form-group full" style="margin-bottom:0">
+          <label>Descripción / Tarea</label>
+          <textarea id="reg-desc" placeholder="Ej: Revisión liquidación IVA, atención consulta, preparación DDJJ..."></textarea>
+        </div>
+        <button class="btn-primary" onclick="saveRecord()">Registrar horas</button>
+        <div class="success-msg" id="reg-success">✓ Horas registradas correctamente.</div>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="tab-panel" id="tab-clientes">
+      <div class="clients-layout">
+        <div class="client-list-card">
+          <div class="client-list-header">
+            Clientes activos
+            <span class="client-count-lbl" id="client-count-lbl">0 clientes</span>
+          </div>
+          <div id="client-list-body"></div>
+        </div>
+        <div class="form-card">
+          <h2>Agregar cliente</h2>
+          <div class="form-group">
+            <label>Nombre del cliente</label>
+            <input type="text" id="new-client-name" placeholder="Ej: Farmamondo SRL"
+              onkeydown="if(event.key==='Enter') addClient()">
+          </div>
+          <button class="btn-primary" onclick="addClient()" style="margin-top:12px">Agregar cliente</button>
+          <div class="success-msg" id="client-success">✓ Cliente agregado.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTES -->
+    <div class="tab-panel" id="tab-reportes">
+      <div class="report-filters">
+        <div class="period-btns">
+          <button class="period-btn active" onclick="setPeriod('hoy')" id="period-hoy">Hoy</button>
+          <button class="period-btn" onclick="setPeriod('semana')" id="period-semana">Esta semana</button>
+          <button class="period-btn" onclick="setPeriod('mes')" id="period-mes">Este mes</button>
+          <button class="period-btn" onclick="setPeriod('todo')" id="period-todo">Todo</button>
+        </div>
+        <div class="client-filter">
+          <select id="filter-client" onchange="renderReportes()">
+            <option value="">👤 Todos los clientes</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-value" id="metric-horas">0<span class="metric-unit">hs</span></div>
+          <div class="metric-label">Total horas</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metric-registros">0</div>
+          <div class="metric-label">Registros</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metric-clientes">0</div>
+          <div class="metric-label">Clientes</div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-section-title">Distribución por cliente</div>
+        <div class="chart-bars" id="chart-bars"></div>
+      </div>
+
+      <div class="records-card">
+        <div class="records-header">
+          <span class="records-title">Detalle de registros</span>
+          <span class="records-count" id="records-count-lbl">0 registros</span>
+        </div>
+        <div id="records-list"></div>
+      </div>
+    </div>
+
+    <!-- FOCO -->
+    <div class="tab-panel" id="tab-foco">
+      <div class="foco-layout">
+        <div class="pomodoro-card">
+          <div class="pomo-mode-lbl" id="pomo-mode-lbl">TRABAJO · 25 min</div>
+          <div class="pomo-timer" id="pomo-timer">25:00</div>
+          <div class="pomo-progress">
+            <div class="pomo-progress-fill" id="pomo-progress" style="width:100%"></div>
+          </div>
+          <div class="pomo-client">
+            <label>Cliente activo</label>
+            <select id="pomo-client">
+              <option value="">Sin cliente</option>
+            </select>
+          </div>
+          <div class="pomo-btns">
+            <button class="btn-primary" id="pomo-start-btn" onclick="pomodoroToggle()">Iniciar</button>
+            <button class="btn-secondary" onclick="pomodoroReset()">Reiniciar</button>
+          </div>
+          <div class="pomo-count">Pomodoros hoy: <strong id="pomo-count">0</strong></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-content -->
+
+  <div class="app-footer">San Miguel Contadores · Control Horas · Uso interno</div>
+</div><!-- /app -->
+
+<!-- MODAL: Pomodoro completado -->
+<div class="modal-overlay" id="pomo-modal">
+  <div class="modal-card">
+    <div class="modal-icon">🍅</div>
+    <div class="modal-title">¡Pomodoro completado!</div>
+    <div class="modal-body" id="pomo-modal-body">Trabajaste 25 minutos. ¿Querés registrar las horas?</div>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="pomodoroLogAndContinue()">Registrar horas</button>
+      <button class="btn-secondary" onclick="pomodoroSkipAndBreak()">No registrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const PWD = 'horas2026';
+const KEYS = {
+  clients: 'smc_ctrl_clients',
+  records:  'smc_ctrl_records',
+  pomoBase: 'smc_ctrl_pomo_'
+};
+const DEFAULT_CLIENTS = [
+  { id: 'c1', name: 'OSDE' },
+  { id: 'c2', name: 'Farmamondo SRL' },
+  { id: 'c3', name: 'Administración Estudio' },
+  { id: 'c4', name: 'Koipay Argentina SA' }
+];
+
+// ============================================================
+// AUTH
+// ============================================================
+function checkPwd() {
+  if (document.getElementById('pwd-input').value === PWD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    init();
+  } else {
+    document.getElementById('pwd-error').textContent = 'Contraseña incorrecta.';
+    document.getElementById('pwd-input').value = '';
+  }
+}
+
+// ============================================================
+// DATA
+// ============================================================
+function getClients() {
+  const s = localStorage.getItem(KEYS.clients);
+  if (!s) { localStorage.setItem(KEYS.clients, JSON.stringify(DEFAULT_CLIENTS)); return DEFAULT_CLIENTS; }
+  return JSON.parse(s);
+}
+function saveClients(c) { localStorage.setItem(KEYS.clients, JSON.stringify(c)); }
+
+function getRecords() {
+  const s = localStorage.getItem(KEYS.records);
+  return s ? JSON.parse(s) : [];
+}
+function saveRecords(r) { localStorage.setItem(KEYS.records, JSON.stringify(r)); }
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  const today = todayStr();
+  document.getElementById('header-date').value = today;
+  document.getElementById('reg-date').value = today;
+  updateBadges();
+  renderRegistrar();
+  renderClientes();
+  renderReportes();
+  renderFoco();
+}
+
+function onHeaderDateChange() {
+  document.getElementById('reg-date').value = document.getElementById('header-date').value;
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('tab-btn-' + name).classList.add('active');
+  if (name === 'reportes')  renderReportes();
+  if (name === 'clientes')  renderClientes();
+  if (name === 'registrar') renderRegistrar();
+  if (name === 'foco')      renderFoco();
+}
+
+function updateBadges() {
+  const today = todayStr();
+  const todayCount = getRecords().filter(r => r.date === today).length;
+  document.getElementById('badge-registrar').textContent = todayCount;
+  document.getElementById('badge-clientes').textContent = getClients().length;
+}
+
+// ============================================================
+// REGISTRAR
+// ============================================================
+function renderRegistrar() {
+  const sel = document.getElementById('reg-client');
+  const cur = sel.value;
+  const clients = getClients();
+  sel.innerHTML = clients.length
+    ? clients.map(c => `<option value="${c.id}"${c.id === cur ? ' selected' : ''}>${esc(c.name)}</option>`).join('')
+    : '<option value="">— Sin clientes —</option>';
+}
+
+function saveRecord() {
+  const clientId = document.getElementById('reg-client').value;
+  const date     = document.getElementById('reg-date').value;
+  const hours    = parseFloat(document.getElementById('reg-hours').value);
+  const desc     = document.getElementById('reg-desc').value.trim();
+
+  if (!clientId)        return alert('Seleccioná un cliente.');
+  if (!date)            return alert('Seleccioná una fecha.');
+  if (!hours || hours <= 0) return alert('Ingresá una cantidad de horas válida.');
+
+  const client  = getClients().find(c => c.id === clientId);
+  const records = getRecords();
+  records.push({
+    id: uid(),
+    clientId,
+    clientName: client ? client.name : 'Desconocido',
+    date,
+    hours,
+    description: desc,
+    createdAt: Date.now()
+  });
+  saveRecords(records);
+
+  document.getElementById('reg-hours').value = '';
+  document.getElementById('reg-desc').value  = '';
+  showSuccess('reg-success');
+  updateBadges();
+}
+
+// ============================================================
+// CLIENTES
+// ============================================================
+function renderClientes() {
+  const clients = getClients();
+  const body    = document.getElementById('client-list-body');
+  document.getElementById('client-count-lbl').textContent =
+    `${clients.length} ${clients.length === 1 ? 'cliente' : 'clientes'}`;
+
+  body.innerHTML = clients.length
+    ? clients.map(c => `
+        <div class="client-item">
+          <span class="client-name">${esc(c.name)}</span>
+          <button class="btn-danger" onclick="deleteClient('${c.id}')">Eliminar</button>
+        </div>`).join('')
+    : '<div class="client-empty">Sin clientes cargados.</div>';
+}
+
+function addClient() {
+  const input = document.getElementById('new-client-name');
+  const name  = input.value.trim();
+  if (!name) return;
+  const clients = getClients();
+  if (clients.find(c => c.name.toLowerCase() === name.toLowerCase()))
+    return alert('Ya existe un cliente con ese nombre.');
+  clients.push({ id: uid(), name });
+  saveClients(clients);
+  input.value = '';
+  showSuccess('client-success');
+  renderClientes();
+  renderRegistrar();
+  renderFoco();
+  updateBadges();
+}
+
+function deleteClient(id) {
+  const clients = getClients();
+  const c = clients.find(x => x.id === id);
+  if (!c || !confirm(`¿Eliminar "${c.name}"?\nLos registros de horas existentes se conservarán.`)) return;
+  saveClients(clients.filter(x => x.id !== id));
+  renderClientes();
+  renderRegistrar();
+  renderFoco();
+  updateBadges();
+}
+
+// ============================================================
+// REPORTES
+// ============================================================
+let currentPeriod = 'hoy';
+
+function setPeriod(p) {
+  currentPeriod = p;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('period-' + p).classList.add('active');
+  renderReportes();
+}
+
+function getFilteredRecords() {
+  const all          = getRecords();
+  const clientFilter = document.getElementById('filter-client')?.value || '';
+  const today        = todayStr();
+  const now          = new Date();
+  let filtered       = all;
+
+  if (currentPeriod === 'hoy') {
+    filtered = filtered.filter(r => r.date === today);
+  } else if (currentPeriod === 'semana') {
+    const dow = now.getDay();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - ((dow + 6) % 7));
+    const startStr = startOfWeek.toISOString().slice(0, 10);
+    filtered = filtered.filter(r => r.date >= startStr && r.date <= today);
+  } else if (currentPeriod === 'mes') {
+    const monthStr = today.slice(0, 7);
+    filtered = filtered.filter(r => r.date.slice(0, 7) === monthStr);
+  }
+
+  if (clientFilter) filtered = filtered.filter(r => r.clientId === clientFilter);
+  return filtered;
+}
+
+function renderReportes() {
+  // Populate client filter
+  const sel     = document.getElementById('filter-client');
+  const cur     = sel.value;
+  const clients = getClients();
+  sel.innerHTML = '<option value="">👤 Todos los clientes</option>' +
+    clients.map(c => `<option value="${c.id}"${c.id === cur ? ' selected' : ''}>${esc(c.name)}</option>`).join('');
+
+  const records       = getFilteredRecords();
+  const totalHours    = records.reduce((s, r) => s + r.hours, 0);
+  const uniqueClients = new Set(records.map(r => r.clientId)).size;
+
+  document.getElementById('metric-horas').innerHTML =
+    `${fmtHours(totalHours)}<span class="metric-unit">hs</span>`;
+  document.getElementById('metric-registros').textContent = records.length;
+  document.getElementById('metric-clientes').textContent  = uniqueClients;
+
+  renderChart(records);
+  renderRecordsList(records);
+  const n = records.length;
+  document.getElementById('records-count-lbl').textContent = `${n} ${n === 1 ? 'registro' : 'registros'}`;
+}
+
+function renderChart(records) {
+  const container = document.getElementById('chart-bars');
+  const byClient  = {};
+  records.forEach(r => {
+    byClient[r.clientName] = (byClient[r.clientName] || 0) + r.hours;
+  });
+  const entries = Object.entries(byClient).sort((a, b) => b[1] - a[1]);
+
+  if (!entries.length) {
+    container.innerHTML = '<div class="chart-empty">Sin registros para el período seleccionado.</div>';
+    return;
+  }
+  const max = entries[0][1];
+  container.innerHTML = entries.map(([name, hours]) => {
+    const pct = max > 0 ? (hours / max * 100) : 0;
+    return `<div class="chart-bar-row">
+      <div class="chart-bar-label" title="${esc(name)}">${esc(name)}</div>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct.toFixed(1)}%"></div></div>
+      <div class="chart-bar-value">${fmtHours(hours)}&thinsp;hs</div>
+    </div>`;
+  }).join('');
+}
+
+function renderRecordsList(records) {
+  const container = document.getElementById('records-list');
+  const sorted    = [...records].sort((a, b) =>
+    b.date !== a.date ? b.date.localeCompare(a.date) : b.createdAt - a.createdAt
+  );
+  if (!sorted.length) {
+    container.innerHTML = '<div class="records-empty">Sin registros para el período seleccionado.</div>';
+    return;
+  }
+  container.innerHTML = sorted.map(r => `
+    <div class="record-item">
+      <div class="record-info">
+        <div class="record-client">${esc(r.clientName)}</div>
+        <div class="record-date">${fmtDate(r.date)}</div>
+        ${r.description ? `<div class="record-desc">${esc(r.description)}</div>` : ''}
+      </div>
+      <div class="record-hours">${fmtHours(r.hours)}<span class="record-hours-unit"> hs</span></div>
+      <button class="record-delete" onclick="deleteRecord('${r.id}')" title="Eliminar">×</button>
+    </div>`).join('');
+}
+
+function deleteRecord(id) {
+  if (!confirm('¿Eliminar este registro?')) return;
+  saveRecords(getRecords().filter(r => r.id !== id));
+  renderReportes();
+  updateBadges();
+}
+
+// ============================================================
+// FOCO / POMODORO
+// ============================================================
+const WORK_SEC  = 25 * 60;
+const BREAK_SEC =  5 * 60;
+
+let pomo = {
+  timeLeft:   WORK_SEC,
+  totalTime:  WORK_SEC,
+  isRunning:  false,
+  isBreak:    false,
+  interval:   null,
+  pendingClientId:   null,
+  pendingClientName: null
+};
+
+function renderFoco() {
+  const sel     = document.getElementById('pomo-client');
+  const cur     = sel.value;
+  const clients = getClients();
+  sel.innerHTML = '<option value="">Sin cliente</option>' +
+    clients.map(c => `<option value="${c.id}"${c.id === cur ? ' selected' : ''}>${esc(c.name)}</option>`).join('');
+
+  const today   = todayStr();
+  const count   = parseInt(localStorage.getItem(KEYS.pomoBase + today) || '0');
+  document.getElementById('pomo-count').textContent = count;
+}
+
+function pomodoroToggle() {
+  if (pomo.isRunning) {
+    clearInterval(pomo.interval);
+    pomo.isRunning = false;
+    document.getElementById('pomo-start-btn').textContent = 'Continuar';
+    return;
+  }
+  pomo.isRunning = true;
+  document.getElementById('pomo-start-btn').textContent = 'Pausar';
+  pomo.interval = setInterval(() => {
+    pomo.timeLeft--;
+    updatePomoDisplay();
+    if (pomo.timeLeft <= 0) {
+      clearInterval(pomo.interval);
+      pomo.isRunning = false;
+      pomodoroComplete();
+    }
+  }, 1000);
+}
+
+function pomodoroReset() {
+  clearInterval(pomo.interval);
+  pomo.isRunning = false;
+  pomo.isBreak   = false;
+  pomo.timeLeft  = WORK_SEC;
+  pomo.totalTime = WORK_SEC;
+  document.getElementById('pomo-start-btn').textContent = 'Iniciar';
+  document.getElementById('pomo-timer').classList.remove('break');
+  document.getElementById('pomo-progress').classList.remove('break');
+  updatePomoDisplay();
+}
+
+function updatePomoDisplay() {
+  const m = Math.floor(pomo.timeLeft / 60).toString().padStart(2, '0');
+  const s = (pomo.timeLeft % 60).toString().padStart(2, '0');
+  document.getElementById('pomo-timer').textContent = `${m}:${s}`;
+  const pct = pomo.totalTime > 0 ? (pomo.timeLeft / pomo.totalTime * 100) : 0;
+  document.getElementById('pomo-progress').style.width = pct.toFixed(1) + '%';
+  document.getElementById('pomo-mode-lbl').textContent = pomo.isBreak
+    ? 'DESCANSO · 5 min'
+    : 'TRABAJO · 25 min';
+}
+
+function pomodoroComplete() {
+  if (pomo.isBreak) {
+    pomodoroReset();
+    return;
+  }
+  // Increment counter
+  const today   = todayStr();
+  const key     = KEYS.pomoBase + today;
+  const newCount = (parseInt(localStorage.getItem(key) || '0')) + 1;
+  localStorage.setItem(key, newCount);
+  document.getElementById('pomo-count').textContent = newCount;
+
+  // Capture selected client
+  const sel                 = document.getElementById('pomo-client');
+  pomo.pendingClientId      = sel.value;
+  pomo.pendingClientName    = sel.value ? sel.options[sel.selectedIndex].text : null;
+
+  // Show modal
+  const clientText = pomo.pendingClientName
+    ? ` para <strong>${esc(pomo.pendingClientName)}</strong>`
+    : '';
+  document.getElementById('pomo-modal-body').innerHTML =
+    `Trabajaste 25 minutos${clientText}. ¿Querés registrar 0,5 hs en el cliente?`;
+  document.getElementById('pomo-modal').classList.add('show');
+}
+
+function pomodoroLogAndContinue() {
+  document.getElementById('pomo-modal').classList.remove('show');
+  if (pomo.pendingClientId) {
+    const client  = getClients().find(c => c.id === pomo.pendingClientId);
+    const records = getRecords();
+    records.push({
+      id:          uid(),
+      clientId:    pomo.pendingClientId,
+      clientName:  client ? client.name : pomo.pendingClientName || 'Desconocido',
+      date:        todayStr(),
+      hours:       0.5,
+      description: 'Sesión Pomodoro (25 min)',
+      createdAt:   Date.now()
+    });
+    saveRecords(records);
+    updateBadges();
+  }
+  startBreak();
+}
+
+function pomodoroSkipAndBreak() {
+  document.getElementById('pomo-modal').classList.remove('show');
+  startBreak();
+}
+
+function startBreak() {
+  pomo.isBreak   = true;
+  pomo.timeLeft  = BREAK_SEC;
+  pomo.totalTime = BREAK_SEC;
+  document.getElementById('pomo-timer').classList.add('break');
+  document.getElementById('pomo-progress').classList.add('break');
+  document.getElementById('pomo-start-btn').textContent = 'Iniciar descanso';
+  updatePomoDisplay();
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function fmtHours(h) {
+  const r = Math.round(h * 100) / 100;
+  return Number.isInteger(r) ? r.toString() : r.toString();
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const [y, m, day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+
+function showSuccess(id) {
+  const el = document.getElementById(id);
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 2500);
+}
+</script>
+
+</body>
+</html>
