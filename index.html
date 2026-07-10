@@ -921,6 +921,12 @@ function horasText(h) {
   return Number(h).toFixed(2);
 }
 
+// Formato de horas para celdas de Excel: siempre coma decimal, como texto
+// (evita que Excel reinterprete el separador según la config regional).
+function horasXls(h) {
+  return Number(h).toFixed(2).replace('.', ',');
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -1504,7 +1510,7 @@ function exportarClientesExcel() {
     const hs = horasPorCliente[c.id] || 0;
     return `<tr>
       <td>${escXml(c.nombre)}</td>
-      <td style="mso-number-format:'0.00'">${hs}</td>
+      <td style="mso-number-format:'\@'">${horasXls(hs)}</td>
     </tr>`;
   }).join('');
 
@@ -1539,7 +1545,7 @@ function exportarClientesExcel() {
     ${filas}
     <tr class="total-row">
       <td><b>TOTAL</b></td>
-      <td><b>${totalHs}</b></td>
+      <td style="mso-number-format:'\@'"><b>${horasXls(totalHs)}</b></td>
     </tr>
   </tbody>
 </table>
@@ -1883,7 +1889,7 @@ function exportarExcel() {
     return `<tr>
       <td style="mso-number-format:'DD/MM/YYYY'">${formatDate(r.fecha)}</td>
       <td>${escXml(c.nombre)}</td>
-      <td style="mso-number-format:'0.00'">${r.horas}</td>
+      <td style="mso-number-format:'\@'">${horasXls(r.horas)}</td>
       <td>${escXml(tipoLabel(r.tipoTarea))}</td>
       <td>${escXml(r.detalle)}</td>
     </tr>`;
@@ -1896,7 +1902,7 @@ function exportarExcel() {
       const c = clienteMap[cid] || { nombre:'Desconocido' };
       return `<tr>
         <td><b>${escXml(c.nombre)}</b></td>
-        <td style="mso-number-format:'0.00'">${hs}</td>
+        <td style="mso-number-format:'\@'">${horasXls(hs)}</td>
       </tr>`;
     }).join('');
 
@@ -1950,7 +1956,7 @@ function exportarExcel() {
     ${filas}
     <tr class="total-row">
       <td colspan="2"><b>TOTAL</b></td>
-      <td><b>${totalHs}</b></td>
+      <td style="mso-number-format:'\@'"><b>${horasXls(totalHs)}</b></td>
       <td></td>
       <td></td>
     </tr>
@@ -1968,7 +1974,7 @@ function exportarExcel() {
     ${resumen}
     <tr class="total-row">
       <td><b>TOTAL</b></td>
-      <td><b>${totalHs}</b></td>
+      <td style="mso-number-format:'\@'"><b>${horasXls(totalHs)}</b></td>
     </tr>
   </tbody>
 </table>
